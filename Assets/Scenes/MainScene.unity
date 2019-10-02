@@ -156,7 +156,7 @@ MonoBehaviour:
     type: 3}
   marchingCubesGeneratorShader: {fileID: 7200000, guid: acaef50cc884c5d448f8998d3973d79e,
     type: 3}
-  renderDistance: 1
+  renderDistance: 2
 --- !u!23 &32063543
 MeshRenderer:
   m_ObjectHideFlags: 0

@@ -1,9 +1,9 @@
 using UnityEngine;
 
-class TerrainChunkConstraint
+public class TerrainChunkConstraint
 {
     public Vector3Int scale { get; private set; } // Scale is by TerrainChunk.ChunkSize
-    public readonly Vector3 position;
+    public Vector3 position { get; private set; }
 
     public TerrainChunkConstraint(Vector3 position)
     {
@@ -11,10 +11,15 @@ class TerrainChunkConstraint
         this.position = position;
     }
 
-    public void Scale(Vector3Int scaleFactor)
+    public void UpdateScale(Vector3Int scale)
     {
-        scale += scaleFactor;
+        this.scale = scale;
         scale = new Vector3Int(Mathf.Max(scale.x, 1), Mathf.Max(scale.y, 1), Mathf.Max(scale.z, 1));
+    }
+
+    public void UpdateY(float loadingObjectY)
+    {
+        position = new Vector3(position.x, loadingObjectY, position.z);
     }
 
     public int GetVolume()

@@ -17,9 +17,7 @@ int numPointsZ;
 float noiseScale;
 int octaves;
 StructuredBuffer<float3> offsets;
-// --New
 float3 offset;
-//
 float weightMultiplier;
 float persistence;
 float lacunarity;
@@ -28,9 +26,9 @@ float noiseWeight;
 float4 params;
 float hardFloor;
 float hardFloorWeight;
+float offsetNoise; // basically seed
 
-float generateNoise(float3 pos) {
-	float offsetNoise = 0; // Note that this does not matter
+float generateNoise(float3 pos) {	
 	float noise = 0;
 	float frequency = noiseScale / 100;
 	float amplitude = 1;
