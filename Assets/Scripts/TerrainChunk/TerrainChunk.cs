@@ -27,7 +27,6 @@ public class TerrainChunk
         internal Vector3 vertexA;
     }
 
-    // When 80~ starts acting wierd, probably because the array sizes begin to be too long.
     public const int ChunkSize = 10;
     public static GameObject prefab;
     public static ComputeShader surfaceLevelGeneratorShader;
@@ -56,7 +55,9 @@ public class TerrainChunk
             marchingCubesGeneratorShader.FindKernel("MarchCubes"));
 
         mesh = new Mesh();
-        this.terrainObject = MonoBehaviour.Instantiate(prefab, index.ToPosition(), Quaternion.identity);
+        // The position of terrainObject is (0, 0, 0) becasue the shaders put the vertices where
+        // they need anyway, so repositioning is wrong.
+        this.terrainObject = MonoBehaviour.Instantiate(prefab, Vector3.zero, Quaternion.identity);
         terrainObject.GetComponent<MeshFilter>().mesh = mesh;
 
         points = new Point[] { };
@@ -71,7 +72,6 @@ public class TerrainChunk
     public void DebugFunciton()
     {
         Debug.Log(triangles.Length);
-        Debug.Log(points.Length);
     }
 
     public void GenerateMesh()
@@ -82,7 +82,7 @@ public class TerrainChunk
             new ComputeShaderIntProperty("numPointsZ", constraint.scale.z *TerrainChunk.ChunkSize),
             new ComputeShaderFloatProperty("noiseScale", .94f),
             new ComputeShaderIntProperty("octaves", 6),
-            new ComputeShaderVector3Property("offset", index.ToPosition()),
+            new ComputeShaderVector3Property("offset", constraint.position), // Notice this used to be index.ToPosition()
             new ComputeShaderFloatProperty("weightMultiplier", 1.9f),
             new ComputeShaderFloatProperty("persistence", .5f),
             new ComputeShaderFloatProperty("lacunarity", 2f),
@@ -105,13 +105,11 @@ public class TerrainChunk
 
     private void GeneratePoints(ComputeShaderProperty[] surfaceLevelShaderProperties)
     {
-        /////////
         Vector3[] offsets = new Vector3[6];
         for (int i = 0; i < offsets.Length; i++)
         {
             offsets[i] = Vector3.one;
         }
-        /////////
         points = new Point[constraint.GetVolume()];
         ComputeBuffer outputPoints = new ComputeBuffer(points.Length, 16);
         surfaceLevelShader.SetBuffer("points", outputPoints);
@@ -177,12 +175,6 @@ public class TerrainChunk
         mesh.vertices = meshVertices.ToArray();
         mesh.triangles = meshTriangles.ToArray();
         mesh.RecalculateNormals();
-    }
-
-    private Vector3 GetStartingPosition()
-    {
-        Vector3 indexPosition = index.ToPosition();
-        return new Vector3(indexPosition.x, 0, indexPosition.z);
     }
 
     public Vector3 GetScale()

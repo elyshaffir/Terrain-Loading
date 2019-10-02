@@ -1,7 +1,7 @@
 ﻿#pragma kernel MarchCubes
 #include "Imported/MarchTables.compute"
 
-static const int numThreadsMarchCubes = 1; // This is 8 beacause a cube has 8 vertices
+static const int numThreadsMarchCubes = 1;
 
 struct Point { // Appears twice since importing in HLSL is a headache
 	float3 position;	
@@ -64,7 +64,6 @@ void MarchCubes(int3 id : SV_DispatchThreadID)
 	if (cubeCorners[5].surfaceLevel < isoLevel) cubeIndex |= 32;
 	if (cubeCorners[6].surfaceLevel < isoLevel) cubeIndex |= 64;
 	if (cubeCorners[7].surfaceLevel < isoLevel) cubeIndex |= 128;	
-
 	// Create triangles for current cube configuration	
 	for (int i = 0; triangulation[cubeIndex][i] != -1; i += 3) {
 		// Get indices of corner points A and B for each of the three edges

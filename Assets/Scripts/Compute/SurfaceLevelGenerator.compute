@@ -36,7 +36,7 @@ float generateNoise(float3 pos) {
 	float amplitude = 1;
 	float weight = 1;	
 	for (int j = 0; j < octaves; j++) {
-		float n = snoise((pos + offsetNoise) * frequency + offsets[j] + offset);				
+		float n = snoise((pos + offsetNoise) * frequency + offsets[j]);				
 		float v = 1 - abs(n);
 		v = v * v;
 		v *= weight;
@@ -62,7 +62,7 @@ int indexFromCoords(uint x, uint y, uint z) {
 void GenerateSurfaceLevel(uint3 id : SV_DispatchThreadID)
 {
 	if (id.x < numPointsX && id.y < numPointsY && id.z < numPointsZ) {
-		float3 pos = float3(id.x, id.y, id.z);		
+		float3 pos = float3(id.x, id.y, id.z) + offset;		
 		float generatedNoise = generateNoise(pos);		
 		int index = indexFromCoords(id.x, id.y, id.z);
 		

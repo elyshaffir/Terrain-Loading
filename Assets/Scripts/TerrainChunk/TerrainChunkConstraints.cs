@@ -3,7 +3,7 @@ using UnityEngine;
 class TerrainChunkConstraint
 {
     public Vector3Int scale { get; private set; } // Scale is by TerrainChunk.ChunkSize
-    private readonly Vector3 position;
+    public readonly Vector3 position;
 
     public TerrainChunkConstraint(Vector3 position)
     {

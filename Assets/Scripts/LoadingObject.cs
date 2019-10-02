@@ -7,7 +7,7 @@ public class LoadingObject : MonoBehaviour
     public GameObject prefab;
     public ComputeShader surfaceLevelGeneratorShader;
     public ComputeShader marchingCubesGeneratorShader;
-    public int renderDistance = 2;
+    public int renderDistance = 1;
 
     private List<TerrainChunk> loadedChunks;
 
@@ -18,36 +18,59 @@ public class LoadingObject : MonoBehaviour
 
     void Start()
     {
+        InitializeTerrain();
+    }
+
+    private void InitializeTerrain()
+    {
         TerrainChunk.prefab = prefab;
         TerrainChunk.surfaceLevelGeneratorShader = surfaceLevelGeneratorShader;
         TerrainChunk.marchingCubesGeneratorShader = marchingCubesGeneratorShader;
-        loadedChunks.Add(new TerrainChunk(new TerrainChunkIndex(0, 0)));
-        loadedChunks[0].GenerateMesh();
+    }
+
+    private void InitializeChunk(TerrainChunkIndex index)
+    {
+        TerrainChunk chunkToAdd = new TerrainChunk(index);
+        chunkToAdd.GenerateMesh();
+        loadedChunks.Add(chunkToAdd);
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.A))
+        List<TerrainChunkIndex> indicesToLoad = TerrainChunkIndex.GetChunksToLoad(
+            transform.position,
+            renderDistance,
+            loadedChunks);
+        foreach (TerrainChunkIndex index in indicesToLoad)
+        {
+            InitializeChunk(index);
+        }
+        // ControlChunkSize();        
+    }
+
+    private void ControlChunkSize()
+    {
+        if (Input.GetKeyDown(KeyCode.Q))
         {
             UpdateChunk(new Vector3Int(-1, 0, 0));
         }
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            UpdateChunk(new Vector3Int(0, -1, 0));
-        }
-        if (Input.GetKeyDown(KeyCode.D))
-        {
-            UpdateChunk(new Vector3Int(0, 0, -1));
-        }
-        if (Input.GetKeyDown(KeyCode.Q)) // Streaches
+        if (Input.GetKeyDown(KeyCode.W))
         {
             UpdateChunk(new Vector3Int(1, 0, 0));
         }
-        if (Input.GetKeyDown(KeyCode.W)) // Heightens and shortes (more than half)
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            UpdateChunk(new Vector3Int(0, -1, 0));
+        }
+        if (Input.GetKeyDown(KeyCode.S))
         {
             UpdateChunk(new Vector3Int(0, 1, 0));
         }
-        if (Input.GetKeyDown(KeyCode.E)) // Halfs
+        if (Input.GetKeyDown(KeyCode.Z))
+        {
+            UpdateChunk(new Vector3Int(0, 0, -1));
+        }
+        if (Input.GetKeyDown(KeyCode.X))
         {
             UpdateChunk(new Vector3Int(0, 0, 1));
         }
@@ -57,13 +80,17 @@ public class LoadingObject : MonoBehaviour
     {
         loadedChunks[0].Update(scale);
         loadedChunks[0].GenerateMesh();
+        loadedChunks[0].DebugFunciton();
     }
 
     void OnDrawGizmos()
     {
         try
         {
-            Gizmos.DrawWireCube(loadedChunks[0].GetScale() / 2, loadedChunks[0].GetScale());
+            foreach (TerrainChunk loadedChunk in loadedChunks)
+            {
+                // Gizmos.DrawWireCube(loadedChunk.GetScale() / 2 + loadedChunk.index.ToPosition(), loadedChunk.GetScale());
+            }
         }
         catch (NullReferenceException) { }
     }
