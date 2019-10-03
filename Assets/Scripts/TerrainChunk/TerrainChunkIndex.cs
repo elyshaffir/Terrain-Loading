@@ -13,21 +13,25 @@ public class TerrainChunkIndex
         this.z = z;
     }
 
-    public static List<TerrainChunkIndex> GetChunksToLoad(Vector3 loadingChunkPosition, int renderDistance, List<TerrainChunk> loadedChunks)
+    public static List<TerrainChunkIndex> GetChunksToUpdate(Vector3 loadingChunkPosition, int renderDistance)
     {
-        return GetChunksToLoad(FromVector(loadingChunkPosition), renderDistance, loadedChunks);
-    }
-
-    public static List<TerrainChunkIndex> GetChunksToLoad(TerrainChunkIndex loadingObjectIndex, int renderDistance, List<TerrainChunk> loadedChunks)
-    {
-        List<TerrainChunkIndex> chunksToLoad = new List<TerrainChunkIndex>();
+        TerrainChunkIndex loadingObjectIndex = FromVector(loadingChunkPosition);
+        List<TerrainChunkIndex> chunksToUpdate = new List<TerrainChunkIndex>();
         for (int x = loadingObjectIndex.x + renderDistance; x > loadingObjectIndex.x - renderDistance; x--)
         {
             for (int z = loadingObjectIndex.z + renderDistance; z > loadingObjectIndex.z - renderDistance; z--)
             {
-                chunksToLoad.Add(new TerrainChunkIndex(x, z));
+                chunksToUpdate.Add(new TerrainChunkIndex(x, z));
             }
         }
+        return chunksToUpdate;
+    }
+
+    public static List<TerrainChunkIndex> GetChunksToLoad(Vector3 loadingChunkPosition,
+        int renderDistance,
+        List<TerrainChunkIndex> chunksToLoad,
+        List<TerrainChunk> loadedChunks)
+    {
         List<TerrainChunkIndex> loadedIndices = new List<TerrainChunkIndex>();
         foreach (TerrainChunk loadedChunk in loadedChunks)
         {
@@ -70,5 +74,10 @@ public class TerrainChunkIndex
     public bool Equals(TerrainChunkIndex index)
     {
         return x == index.x && z == index.z;
+    }
+
+    public static int GetTerrainY(Vector3 position)
+    {
+        return Mathf.RoundToInt(position.y / TerrainChunk.ChunkSize);
     }
 }

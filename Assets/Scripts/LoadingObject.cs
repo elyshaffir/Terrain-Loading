@@ -4,16 +4,23 @@ using UnityEngine;
 
 public class LoadingObject : MonoBehaviour
 {
-    public GameObject prefab;
+    /*    
+    - Implement terrain editor
+    - Implement controller for loading object to see how it looks in-game    
+    - Organize the code / documents (imports, namespaces etc.) to prepare for importing to other projects.
+     */
+    public GameObject terrainChunkPrefab;
     public ComputeShader surfaceLevelGeneratorShader;
     public ComputeShader marchingCubesGeneratorShader;
     public int renderDistance;
 
     private List<TerrainChunk> loadedChunks;
+    private int lastTerrainY;
 
     void Awake()
     {
         loadedChunks = new List<TerrainChunk>();
+        lastTerrainY = TerrainChunkIndex.GetTerrainY(transform.position);
     }
 
     void Start()
@@ -23,38 +30,69 @@ public class LoadingObject : MonoBehaviour
 
     private void InitializeTerrain()
     {
-        TerrainChunk.prefab = prefab;
+        TerrainChunk.prefab = terrainChunkPrefab;
         TerrainChunkMeshGenerator.Init(surfaceLevelGeneratorShader, marchingCubesGeneratorShader);
     }
 
-    private void InitializeChunk(TerrainChunkIndex index)
+    private void LoadChunks(List<TerrainChunkIndex> indicesToLoad)
     {
-        TerrainChunk chunkToAdd = new TerrainChunk(index);
-        chunkToAdd.Update(new Vector3Int(1, renderDistance * 2 + 1, 1), transform.position.y - renderDistance * TerrainChunk.ChunkSize);
-        loadedChunks.Add(chunkToAdd);
+        foreach (TerrainChunkIndex indexToLoad in indicesToLoad)
+        {
+            TerrainChunk chunkToAdd = new TerrainChunk(indexToLoad);
+            chunkToAdd.Create(GenerateConstraintScale(), GenerateConstraintY());
+            loadedChunks.Add(chunkToAdd);
+        }
+    }
+
+    private void UpdateChunks(List<TerrainChunkIndex> indicesToUpdate)
+    {
+        List<TerrainChunk> newLoadedChunks = new List<TerrainChunk>();
+        foreach (TerrainChunkIndex indexToUpdate in indicesToUpdate)
+        {
+            foreach (TerrainChunk loadedChunk in loadedChunks)
+            {
+                if (loadedChunk.index.Equals(indexToUpdate))
+                {
+                    loadedChunk.Create(GenerateConstraintScale(), GenerateConstraintY());
+                    newLoadedChunks.Add(loadedChunk);
+                }
+            }
+        }
+        foreach (TerrainChunk loadedChunk in loadedChunks)
+        {
+            if (!newLoadedChunks.Contains(loadedChunk))
+            {
+                loadedChunk.Destroy();
+            }
+        }
+        loadedChunks = newLoadedChunks;
+    }
+
+    private Vector3Int GenerateConstraintScale()
+    {
+        return new Vector3Int(1, renderDistance * 2 + 1, 1);
+    }
+
+    private float GenerateConstraintY()
+    {
+        return Mathf.RoundToInt(transform.position.y) - renderDistance * TerrainChunk.ChunkSize;
     }
 
     void Update()
     {
+        List<TerrainChunkIndex> indicesToUpdate = TerrainChunkIndex.GetChunksToUpdate(
+            transform.position,
+            renderDistance);
+        if (TerrainChunkIndex.GetTerrainY(transform.position) != lastTerrainY)
+        {
+            UpdateChunks(indicesToUpdate);
+            lastTerrainY = TerrainChunkIndex.GetTerrainY(transform.position);
+        }
         List<TerrainChunkIndex> indicesToLoad = TerrainChunkIndex.GetChunksToLoad(
             transform.position,
             renderDistance,
+            indicesToUpdate,
             loadedChunks);
-        foreach (TerrainChunkIndex index in indicesToLoad)
-        {
-            InitializeChunk(index);
-        }
-    }
-
-    void OnDrawGizmos()
-    {
-        try
-        {
-            foreach (TerrainChunk loadedChunk in loadedChunks)
-            {
-                // Gizmos.DrawWireCube(loadedChunk.GetScale() / 2 + loadedChunk.constraint.position, loadedChunk.GetScale());
-            }
-        }
-        catch (NullReferenceException) { }
+        LoadChunks(indicesToLoad);
     }
 }

@@ -105,7 +105,7 @@ class TerrainChunkMeshGenerator
 
     private void GeneratePoints(ComputeShaderProperty[] surfaceLevelShaderProperties)
     {
-        Vector3[] offsets = new Vector3[6];
+        Vector3[] offsets = new Vector3[6]; // Figure out what this is
         for (int i = 0; i < offsets.Length; i++)
         {
             offsets[i] = Vector3.one;
@@ -132,7 +132,7 @@ class TerrainChunkMeshGenerator
     private void GenerateTriangles(ComputeShaderProperty[] marchingCubesShaderProperties)
     {
         ComputeBuffer triangleBuffer = new ComputeBuffer(
-            constraint.GetVolume(), 36, ComputeBufferType.Append); // Notice the count, it is max size of array
+            constraint.GetTrianglesVolume(), 36, ComputeBufferType.Append);
         triangleBuffer.SetCounterValue(0);
         ComputeBuffer triangleCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
         ComputeBuffer inputPoints = new ComputeBuffer(points.Length, 16);
@@ -141,12 +141,7 @@ class TerrainChunkMeshGenerator
         marchingCubesShader.SetBuffer("triangles", triangleBuffer);
         marchingCubesShader.SetBuffer("points", inputPoints);
 
-        marchingCubesShader.Dispatch(
-            (constraint.scale.x * TerrainChunk.ChunkSize - 1),
-            (constraint.scale.y * TerrainChunk.ChunkSize - 1),
-            (constraint.scale.z * TerrainChunk.ChunkSize - 1),
-            marchingCubesShaderProperties); // Perhaps optimize
-
+        marchingCubesShader.Dispatch(constraint.scale.x, constraint.scale.y, constraint.scale.z, marchingCubesShaderProperties);
         ComputeBuffer.CopyCount(triangleBuffer, triangleCountBuffer, 0);
         int[] triangleCount = new int[1] { 0 };
         triangleCountBuffer.GetData(triangleCount);

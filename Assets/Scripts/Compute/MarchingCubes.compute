@@ -1,7 +1,7 @@
 ﻿#pragma kernel MarchCubes
 #include "Imported/MarchTables.compute"
 
-static const int numThreadsMarchCubes = 1;
+static const int numThreadsMarchCubes = 9; // The chunk size - 1
 
 struct Point { // Appears twice since importing in HLSL is a headache
 	float3 position;	
@@ -34,12 +34,6 @@ int indexFromCoord(int x, int y, int z) {
 [numthreads(numThreadsMarchCubes, numThreadsMarchCubes, numThreadsMarchCubes)]
 void MarchCubes(int3 id : SV_DispatchThreadID)
 {
-	// Stop one point before the end because voxel includes neighbouring points
-	if (id.x >= numPointsX - 1 || id.y >= numPointsY - 1 || id.z >= numPointsZ - 1)
-	{
-		return;
-	}
-
 	// 8 corners of the current cube
 	Point cubeCorners[8] = {
 		points[indexFromCoord(id.x, id.y, id.z)],

@@ -13,7 +13,7 @@ RWStructuredBuffer<Point> points;
 int numPointsX;
 int numPointsY;
 int numPointsZ;
-// --Noise Parameters--
+
 float noiseScale;
 int octaves;
 StructuredBuffer<float3> offsets;
@@ -28,7 +28,8 @@ float hardFloor;
 float hardFloorWeight;
 float offsetNoise; // basically seed
 
-float generateNoise(float3 pos) {	
+float generateNoise(float3 pos)
+{	
 	float noise = 0;
 	float frequency = noiseScale / 100;
 	float amplitude = 1;
@@ -51,7 +52,8 @@ float generateNoise(float3 pos) {
 	return finalVal;
 }
 
-int indexFromCoords(uint x, uint y, uint z) {
+int indexFromCoords(uint x, uint y, uint z)
+{
 	// Remember to update any changes in this version to MarchingCubes.compute
 	return z * numPointsX * numPointsY + y * numPointsX + x;
 }
@@ -62,11 +64,11 @@ void GenerateSurfaceLevel(uint3 id : SV_DispatchThreadID)
 	if (id.x < numPointsX && id.y < numPointsY && id.z < numPointsZ) {
 		float3 pos = float3(id.x, id.y, id.z) + offset;		
 		float generatedNoise = generateNoise(pos);		
-		int index = indexFromCoords(id.x, id.y, id.z);
+		int index = indexFromCoords(id.x, id.y, id.z);		
 		
 		Point p;
 		p.position = pos;
-		p.surfaceLevel = -pos.y + generatedNoise;
-		points[index] = p;
+		p.surfaceLevel = -pos.y + generatedNoise;		
+		points[index] = p;		
 	}
 }

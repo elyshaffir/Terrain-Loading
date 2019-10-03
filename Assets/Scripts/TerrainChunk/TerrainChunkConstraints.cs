@@ -26,4 +26,9 @@ public class TerrainChunkConstraint
     {
         return scale.x * TerrainChunk.ChunkSize * scale.y * TerrainChunk.ChunkSize * scale.z * TerrainChunk.ChunkSize;
     }
+
+    public int GetTrianglesVolume()
+    {
+        return GetVolume() / 2; // Because for each 8 points the maximum is 4
+    }
 }

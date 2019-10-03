@@ -18,9 +18,14 @@ public class TerrainChunk
         terrainObject.GetComponent<MeshFilter>().mesh = meshGenerator.mesh;
     }
 
-    public void Update(Vector3Int scaleFactor, float newConstraintY)
+    public void Create(Vector3Int scale, float newConstraintY)
     {
-        meshGenerator.Update(scaleFactor, newConstraintY);
+        meshGenerator.Update(scale, newConstraintY);
+    }
+
+    public void Destroy()
+    {
+        MonoBehaviour.Destroy(terrainObject);
     }
 
     public Vector3 GetScale()
