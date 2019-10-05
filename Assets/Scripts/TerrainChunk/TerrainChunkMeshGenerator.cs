@@ -75,9 +75,9 @@ class TerrainChunkMeshGenerator
     private ComputeShaderProperty[] GetMarchingCubesProperties()
     {
         return new ComputeShaderProperty[] {
-                new ComputeShaderIntProperty("numPointsX", constraint.scale.x * TerrainChunk.ChunkSize),
-                new ComputeShaderIntProperty("numPointsY", constraint.scale.y * TerrainChunk.ChunkSize),
-                new ComputeShaderIntProperty("numPointsZ", constraint.scale.z *TerrainChunk.ChunkSize),
+                new ComputeShaderIntProperty("numPointsX", constraint.scale.x * TerrainChunk.ChunkSize.x),
+                new ComputeShaderIntProperty("numPointsY", constraint.scale.y * TerrainChunk.ChunkSize.y),
+                new ComputeShaderIntProperty("numPointsZ", constraint.scale.z *TerrainChunk.ChunkSize.z),
                 new ComputeShaderFloatProperty("isoLevel", -3.5f)
             };
     }
@@ -85,9 +85,9 @@ class TerrainChunkMeshGenerator
     private ComputeShaderProperty[] GetSurfaceLevelProperties()
     {
         return new ComputeShaderProperty[] {
-            new ComputeShaderIntProperty("numPointsX", constraint.scale.x * TerrainChunk.ChunkSize),
-            new ComputeShaderIntProperty("numPointsY", constraint.scale.y * TerrainChunk.ChunkSize),
-            new ComputeShaderIntProperty("numPointsZ", constraint.scale.z *TerrainChunk.ChunkSize),
+            new ComputeShaderIntProperty("numPointsX", constraint.scale.x * TerrainChunk.ChunkSize.x),
+            new ComputeShaderIntProperty("numPointsY", constraint.scale.y * TerrainChunk.ChunkSize.y),
+            new ComputeShaderIntProperty("numPointsZ", constraint.scale.z *TerrainChunk.ChunkSize.z),
             new ComputeShaderFloatProperty("noiseScale", .94f),
             new ComputeShaderIntProperty("octaves", 6),
             new ComputeShaderVector3Property("offset", constraint.position),
@@ -119,9 +119,9 @@ class TerrainChunkMeshGenerator
         surfaceLevelShader.SetBuffer("offsets", offsetsBuffer);
 
         surfaceLevelShader.Dispatch(
-            constraint.scale.x * TerrainChunk.ChunkSize / 5,
-            constraint.scale.y * TerrainChunk.ChunkSize / 5,
-            constraint.scale.z * TerrainChunk.ChunkSize / 5,
+            constraint.scale.x * TerrainChunk.ChunkSize.x / 5,
+            constraint.scale.y * TerrainChunk.ChunkSize.y / 5,
+            constraint.scale.z * TerrainChunk.ChunkSize.z / 5,
             surfaceLevelShaderProperties);
 
         outputPoints.GetData(points);

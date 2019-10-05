@@ -63,12 +63,12 @@ public class TerrainChunkIndex
 
     public static TerrainChunkIndex FromVector(Vector3 v)
     {
-        return new TerrainChunkIndex(Mathf.RoundToInt(v.x / TerrainChunk.ChunkSize), Mathf.RoundToInt(v.z / TerrainChunk.ChunkSize));
+        return new TerrainChunkIndex(Mathf.RoundToInt(v.x / TerrainChunk.ChunkSize.x), Mathf.RoundToInt(v.z / TerrainChunk.ChunkSize.z));
     }
 
     public Vector3 ToPosition()
     {
-        return new Vector3(x - 1, 0, z - 1) * (TerrainChunk.ChunkSize - 1);
+        return new Vector3((x - 1) * (TerrainChunk.ChunkSize.x - 1), 0, (z - 1) * (TerrainChunk.ChunkSize.z - 1));
     }
 
     public bool Equals(TerrainChunkIndex index)
@@ -78,6 +78,6 @@ public class TerrainChunkIndex
 
     public static int GetTerrainY(Vector3 position)
     {
-        return Mathf.RoundToInt(position.y / TerrainChunk.ChunkSize);
+        return Mathf.RoundToInt(position.y / TerrainChunk.ChunkSize.y);
     }
 }

@@ -5,6 +5,7 @@ using UnityEngine;
 public class LoadingObject : MonoBehaviour
 {
     /*    
+    - Change vertical loading to the same way as horizontal loading - Maybe not...
     - Implement terrain editor
     - Implement controller for loading object to see how it looks in-game    
     - Organize the code / documents (imports, namespaces etc.) to prepare for importing to other projects.
@@ -44,7 +45,7 @@ public class LoadingObject : MonoBehaviour
         }
     }
 
-    private void UpdateChunks(List<TerrainChunkIndex> indicesToUpdate)
+    private void UpdateChunks(List<TerrainChunkIndex> indicesToUpdate, bool recreate)
     {
         List<TerrainChunk> newLoadedChunks = new List<TerrainChunk>();
         foreach (TerrainChunkIndex indexToUpdate in indicesToUpdate)
@@ -53,7 +54,11 @@ public class LoadingObject : MonoBehaviour
             {
                 if (loadedChunk.index.Equals(indexToUpdate))
                 {
-                    loadedChunk.Create(GenerateConstraintScale(), GenerateConstraintY());
+                    if (recreate)
+                    {
+                        loadedChunk.Create(GenerateConstraintScale(), GenerateConstraintY());
+                        lastTerrainY = TerrainChunkIndex.GetTerrainY(transform.position);
+                    }
                     newLoadedChunks.Add(loadedChunk);
                 }
             }
@@ -75,7 +80,7 @@ public class LoadingObject : MonoBehaviour
 
     private float GenerateConstraintY()
     {
-        return Mathf.RoundToInt(transform.position.y) - renderDistance * TerrainChunk.ChunkSize;
+        return Mathf.RoundToInt(transform.position.y) - renderDistance * TerrainChunk.ChunkSize.y;
     }
 
     void Update()
@@ -83,11 +88,7 @@ public class LoadingObject : MonoBehaviour
         List<TerrainChunkIndex> indicesToUpdate = TerrainChunkIndex.GetChunksToUpdate(
             transform.position,
             renderDistance);
-        if (TerrainChunkIndex.GetTerrainY(transform.position) != lastTerrainY)
-        {
-            UpdateChunks(indicesToUpdate);
-            lastTerrainY = TerrainChunkIndex.GetTerrainY(transform.position);
-        }
+        UpdateChunks(indicesToUpdate, TerrainChunkIndex.GetTerrainY(transform.position) != lastTerrainY);
         List<TerrainChunkIndex> indicesToLoad = TerrainChunkIndex.GetChunksToLoad(
             transform.position,
             renderDistance,

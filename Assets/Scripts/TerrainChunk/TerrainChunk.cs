@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class TerrainChunk
 {
-    public const int ChunkSize = 10;
+    public static Vector3Int ChunkSize = new Vector3Int(10, 10, 10);
     public static GameObject prefab;
 
     public readonly TerrainChunkIndex index;

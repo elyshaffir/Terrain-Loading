@@ -24,7 +24,7 @@ public class TerrainChunkConstraint
 
     public int GetVolume()
     {
-        return scale.x * TerrainChunk.ChunkSize * scale.y * TerrainChunk.ChunkSize * scale.z * TerrainChunk.ChunkSize;
+        return scale.x * TerrainChunk.ChunkSize.x * scale.y * TerrainChunk.ChunkSize.y * scale.z * TerrainChunk.ChunkSize.z;
     }
 
     public int GetTrianglesVolume()
