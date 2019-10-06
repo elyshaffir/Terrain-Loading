@@ -76,6 +76,11 @@ public class TerrainChunkIndex
         return x == index.x && z == index.z;
     }
 
+    public bool IsAdjacent(TerrainChunkIndex index) // This includes the case where both are equal
+    {
+        return Mathf.Abs(x - index.x) + Mathf.Abs(z - index.z) <= 2;
+    }
+
     public static int GetTerrainY(Vector3 position)
     {
         return Mathf.RoundToInt(position.y / TerrainChunk.ChunkSize.y);

@@ -63,11 +63,30 @@ class TerrainChunkMeshGenerator
         GenerateMesh();
     }
 
+    public void Alter(Vector3 spherePosition, float sphereRadius, float power)
+    {
+        for (int i = 0; i < points.Length; i++)
+        {
+            if (Vector3.Distance(points[i].position, spherePosition) <= sphereRadius)
+            {
+                points[i].surfaceLevel += power;
+            }
+        }
+        GenerateMeshWithPoints();
+    }
+
     public void GenerateMesh()
     {
         ComputeShaderProperty[] surfaceLevelShaderProperties = GetSurfaceLevelProperties();
         ComputeShaderProperty[] marchingCubesShaderProperties = GetMarchingCubesProperties();
         GeneratePoints(surfaceLevelShaderProperties);
+        GenerateTriangles(marchingCubesShaderProperties);
+        CreateMesh();
+    }
+
+    private void GenerateMeshWithPoints()
+    {
+        ComputeShaderProperty[] marchingCubesShaderProperties = GetMarchingCubesProperties();
         GenerateTriangles(marchingCubesShaderProperties);
         CreateMesh();
     }

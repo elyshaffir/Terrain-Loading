@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LoadingObject : MonoBehaviour
+public class TerrainLoadingObject : MonoBehaviour
 {
-    /*    
-    - Change vertical loading to the same way as horizontal loading - Maybe not...
-    - Implement terrain editor
-    - Implement controller for loading object to see how it looks in-game    
+    /*        
+    - Change terrain loading to more efficient and possibly to where the player looks
+    -- Also make sure the chunks don't refresh ever - very inefficient and will mess with the terrain editor
+    - Implement terrain editor    
     - Organize the code / documents (imports, namespaces etc.) to prepare for importing to other projects.
      */
+    public GameObject loadingObject;
     public GameObject terrainChunkPrefab;
     public ComputeShader surfaceLevelGeneratorShader;
     public ComputeShader marchingCubesGeneratorShader;
@@ -21,7 +22,7 @@ public class LoadingObject : MonoBehaviour
     void Awake()
     {
         loadedChunks = new List<TerrainChunk>();
-        lastTerrainY = TerrainChunkIndex.GetTerrainY(transform.position);
+        lastTerrainY = TerrainChunkIndex.GetTerrainY(loadingObject.transform.position);
     }
 
     void Start()
@@ -32,6 +33,7 @@ public class LoadingObject : MonoBehaviour
     private void InitializeTerrain()
     {
         TerrainChunk.prefab = terrainChunkPrefab;
+        TerrainChunk.parent = transform;
         TerrainChunkMeshGenerator.Init(surfaceLevelGeneratorShader, marchingCubesGeneratorShader);
     }
 
@@ -54,10 +56,10 @@ public class LoadingObject : MonoBehaviour
             {
                 if (loadedChunk.index.Equals(indexToUpdate))
                 {
-                    if (recreate)
+                    if (recreate && false) // Notice this is disabled
                     {
                         loadedChunk.Create(GenerateConstraintScale(), GenerateConstraintY());
-                        lastTerrainY = TerrainChunkIndex.GetTerrainY(transform.position);
+                        lastTerrainY = TerrainChunkIndex.GetTerrainY(loadingObject.transform.position);
                     }
                     newLoadedChunks.Add(loadedChunk);
                 }
@@ -80,17 +82,17 @@ public class LoadingObject : MonoBehaviour
 
     private float GenerateConstraintY()
     {
-        return Mathf.RoundToInt(transform.position.y) - renderDistance * TerrainChunk.ChunkSize.y;
+        return Mathf.RoundToInt(loadingObject.transform.position.y) - renderDistance * TerrainChunk.ChunkSize.y;
     }
 
     void Update()
     {
         List<TerrainChunkIndex> indicesToUpdate = TerrainChunkIndex.GetChunksToUpdate(
-            transform.position,
+            loadingObject.transform.position,
             renderDistance);
-        UpdateChunks(indicesToUpdate, TerrainChunkIndex.GetTerrainY(transform.position) != lastTerrainY);
+        UpdateChunks(indicesToUpdate, TerrainChunkIndex.GetTerrainY(loadingObject.transform.position) != lastTerrainY);
         List<TerrainChunkIndex> indicesToLoad = TerrainChunkIndex.GetChunksToLoad(
-            transform.position,
+            loadingObject.transform.position,
             renderDistance,
             indicesToUpdate,
             loadedChunks);

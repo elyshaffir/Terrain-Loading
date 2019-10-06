@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 9184674055320317519}
   - component: {fileID: 9184674055320317507}
   m_Layer: 0
-  m_Name: LoadingObject
+  m_Name: TerrainLoadingObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24,7 +24,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9184674055320317506}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -43,6 +43,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d4cb8db5f4ed3b43b92456b35aa92a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  loadingObject: {fileID: 0}
   terrainChunkPrefab: {fileID: 174418134918552408, guid: ce72b2d419830cd44a71b5dab0baa042,
     type: 3}
   surfaceLevelGeneratorShader: {fileID: 7200000, guid: 2d720f907ee40e947a1b2ba1f570cbc9,
