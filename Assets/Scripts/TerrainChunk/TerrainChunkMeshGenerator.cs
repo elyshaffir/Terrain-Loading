@@ -4,11 +4,11 @@ using UnityEngine;
 
 class TerrainChunkMeshGenerator
 {
-    private struct Point
+    public struct Point
     {
 #pragma warning disable 649
-        internal Vector3 position;
-        internal float surfaceLevel;
+        public Vector3 position;
+        public float surfaceLevel;
     }
 
     private struct Triangle
@@ -27,6 +27,7 @@ class TerrainChunkMeshGenerator
     public Mesh mesh;
     public readonly TerrainChunkConstraint constraint;
 
+    private TerrainChunkIndex index;
     private ComputeShaderObject surfaceLevelShader;
     private ComputeShaderObject marchingCubesShader;
     private Point[] points;
@@ -41,7 +42,7 @@ class TerrainChunkMeshGenerator
 
     public TerrainChunkMeshGenerator(TerrainChunkIndex index)
     {
-
+        this.index = index;
         constraint = new TerrainChunkConstraint(index.ToPosition());
 
         surfaceLevelShader = new ComputeShaderObject(
@@ -63,16 +64,19 @@ class TerrainChunkMeshGenerator
         GenerateMesh();
     }
 
-    public void Alter(Vector3 spherePosition, float sphereRadius, float power)
+    public Dictionary<Vector3, float> Alter(Vector3 spherePosition, float sphereRadius, float power)
     {
+        Dictionary<Vector3, float> alterations = new Dictionary<Vector3, float>(new TerrainChunkAlterationManager.Vector3Comparer());
         for (int i = 0; i < points.Length; i++)
         {
             if (Vector3.Distance(points[i].position, spherePosition) <= sphereRadius)
             {
                 points[i].surfaceLevel += power;
+                alterations[points[i].position] = points[i].surfaceLevel;
             }
         }
         GenerateMeshWithPoints();
+        return alterations;
     }
 
     public void GenerateMesh()
@@ -129,6 +133,7 @@ class TerrainChunkMeshGenerator
         {
             offsets[i] = Vector3.one;
         }
+
         points = new Point[constraint.GetVolume()];
         ComputeBuffer outputPoints = new ComputeBuffer(points.Length, 16);
         surfaceLevelShader.SetBuffer("points", outputPoints);
@@ -144,8 +149,25 @@ class TerrainChunkMeshGenerator
             surfaceLevelShaderProperties);
 
         outputPoints.GetData(points);
+        ApplyAlterations();
+
         outputPoints.Release();
         offsetsBuffer.Release();
+    }
+
+    private void ApplyAlterations()
+    {
+        Dictionary<Vector3, float> alterations = TerrainChunkAlterationManager.alterations[index];
+        foreach (KeyValuePair<Vector3, float> alteration in alterations)
+        {
+            for (int i = 0; i < points.Length; i++)
+            {
+                if (points[i].position.Equals(alteration.Key))
+                {
+                    points[i].surfaceLevel = alteration.Value;
+                }
+            }
+        }
     }
 
     private void GenerateTriangles(ComputeShaderProperty[] marchingCubesShaderProperties)

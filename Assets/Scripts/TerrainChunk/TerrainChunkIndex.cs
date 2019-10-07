@@ -85,4 +85,18 @@ public class TerrainChunkIndex
     {
         return Mathf.RoundToInt(position.y / TerrainChunk.ChunkSize.y);
     }
+
+    public class TerrainChunkIndexComparer : IEqualityComparer<TerrainChunkIndex>
+    {
+        public bool Equals(TerrainChunkIndex x, TerrainChunkIndex y)
+        {
+            return x.Equals(y);
+        }
+
+        public int GetHashCode(TerrainChunkIndex obj)
+        {
+            if (obj == null) return 0;
+            return obj.x.GetHashCode() ^ obj.z.GetHashCode();
+        }
+    }
 }

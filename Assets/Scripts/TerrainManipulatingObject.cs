@@ -4,13 +4,22 @@ using UnityEngine;
 
 public class TerrainManipulatingObject : MonoBehaviour
 {
-    /*
-    The collider needs to be updated for it to start reacting
-    The position needs to be global
+    /*    
+    -Terrain Manipulation is working, but with the following limitations:
+        1. Not the most efficient (Some chunks are being tested for alteration even though they don't get altered at all)
+        2. The bigger the sphere the more cracks emerge, probably because it manipulates more points it really shouldn't touch.
+        -- To solve 1 & 2 a re-write of IsChunkInRange is needed, where it takes into account the sphere radius and location better.
+        3. when reloading the altered chunks, all of the alterations are reset.
+        -- This can be done with a whole class holding the build data from all chunks (and perhaps all static TerrainChunk data in general)        
+        --- From this class chunks will be saved to files (because there is only a need to save the changes to a chunk, not all of it)        
+        4. When loading alterations, it is very slow.
      */
-
+    /*
+    Can use this for snow effect (the snow could also re-grow with the wind or somehing)
+     */
     public GameObject loadingGroupObject;
     public int maxRange = 1000;
+    public float power = 1f;
 
     private const float RESIZE_SPEED = 55f;
 
@@ -44,11 +53,11 @@ public class TerrainManipulatingObject : MonoBehaviour
         ResizeTerrainSphere();
         if (Input.GetMouseButton(0))
         {
-            AlterTerrain(GetAlterPower());
+            AlterTerrain(power);
         }
         else if (Input.GetMouseButton(1))
         {
-            AlterTerrain(-GetAlterPower());
+            AlterTerrain(-power);
         }
     }
 
@@ -68,20 +77,7 @@ public class TerrainManipulatingObject : MonoBehaviour
         }
     }
 
-    private float GetAlterPower()
-    {
-        return 1f; // Perhaps change to other calculation / variable
-    }
-
     private void AlterTerrain(float power)
-    /*
-        - Change power to how close the point is to the center of the sphere - Not a must
-        - A static class of cross-chunk triangles, updating whenever the player moves and builds - No Need
-        - Make sure that reloading a chunk doesn't reset the builds
-        -- This can be done with a whole class holding the build data from all chunks (and perhaps all static TerrainChunk data in general)
-        --- This class can also handle cross-chunk triangles.
-        ---- From this class chunks will be saved to files (because there is only a need to save the changes to a chunk, not all of it)
-    */
     {
         foreach (TerrainChunkBehaviour terrainChunk in loadingGroupObject.GetComponentsInChildren<TerrainChunkBehaviour>())
         {
@@ -96,10 +92,6 @@ public class TerrainManipulatingObject : MonoBehaviour
     }
 
     private bool IsChunkInRange(TerrainChunkBehaviour chunk)
-    // The problem lies here (Thank god), because when it returns "true" always it works properly
-    // The only problems that occure are when you go out and in of an altered chunk
-    // The bigger the tool the more crackes emerge!
-    // Optimization is needed badly
     {
         // Assuming the sphere is not larger than the chunk size and that there is only horizontal chunks        
         return TerrainChunkIndex.FromVector(sphereTool.transform.position).IsAdjacent(chunk.chunk.index);

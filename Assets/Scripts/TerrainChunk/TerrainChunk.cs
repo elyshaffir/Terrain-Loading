@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class TerrainChunk
@@ -19,6 +20,7 @@ public class TerrainChunk
         terrainObject.GetComponent<TerrainChunkBehaviour>().chunk = this;
         terrainObject.GetComponent<MeshFilter>().mesh = meshGenerator.mesh;
         terrainObject.GetComponent<MeshCollider>().sharedMesh = meshGenerator.mesh;
+        TerrainChunkAlterationManager.CreateChunk(index);
     }
 
     public void Create(Vector3Int scale, float newConstraintY)
@@ -29,7 +31,7 @@ public class TerrainChunk
 
     public void Alter(Vector3 spherePosition, float sphereRadius, float power)
     {
-        meshGenerator.Alter(spherePosition, sphereRadius, power);
+        TerrainChunkAlterationManager.AddAlterations(index, meshGenerator.Alter(spherePosition, sphereRadius, power));
         terrainObject.GetComponent<MeshCollider>().sharedMesh = meshGenerator.mesh;
     }
 

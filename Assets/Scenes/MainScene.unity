@@ -530,7 +530,7 @@ PrefabInstance:
     - target: {fileID: 9184674055320317507, guid: 44f55ef531714d24a9285db42173a7e5,
         type: 3}
       propertyPath: renderDistance
-      value: 2
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 44f55ef531714d24a9285db42173a7e5, type: 3}
