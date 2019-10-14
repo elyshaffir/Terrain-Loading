@@ -6,6 +6,7 @@ static const int numThreadsMarchCubes = 9; // The chunk size - 1
 struct Point { // Appears twice since importing in HLSL is a headache
 	float3 position;	
 	float surfaceLevel;
+	float2 onEdges;
 };
 
 struct Triangle {
@@ -27,8 +28,7 @@ float3 interpolateVerts(Point v1, Point v2) {
 	return v1.position + t * (v2.position - v1.position);
 }
 
-int indexFromCoord(int x, int y, int z) {
-	// Remember to update any changes in this version to SurfaceLevelGenerator.compute
+int indexFromCoord(int x, int y, int z) {	
 	return z * numPointsX * numPointsY + y * numPointsX + x;
 }
 [numthreads(numThreadsMarchCubes, numThreadsMarchCubes, numThreadsMarchCubes)]

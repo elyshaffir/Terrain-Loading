@@ -29,9 +29,9 @@ public class TerrainChunk
         terrainObject.GetComponent<MeshCollider>().sharedMesh = meshGenerator.mesh;
     }
 
-    public void Alter(Vector3 spherePosition, float sphereRadius, float power)
+    public void Alter(Vector3 spherePosition, float sphereRadius, float power, HashSet<TerrainChunkIndex> additionalIndices)
     {
-        TerrainChunkAlterationManager.AddAlterations(index, meshGenerator.Alter(spherePosition, sphereRadius, power));
+        TerrainChunkAlterationManager.AddAlterations(index, meshGenerator.Alter(spherePosition, sphereRadius, power, additionalIndices));
         terrainObject.GetComponent<MeshCollider>().sharedMesh = meshGenerator.mesh;
     }
 

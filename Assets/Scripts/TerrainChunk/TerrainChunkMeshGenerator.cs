@@ -9,6 +9,9 @@ class TerrainChunkMeshGenerator
 #pragma warning disable 649
         public Vector3 position;
         public float surfaceLevel;
+        public Vector2 onEdges;
+
+        public const int StructSize = sizeof(float) * 3 + sizeof(float) + sizeof(float) * 2;
     }
 
     private struct Triangle
@@ -17,6 +20,8 @@ class TerrainChunkMeshGenerator
         internal Vector3 vertexC;
         internal Vector3 vertexB;
         internal Vector3 vertexA;
+
+        internal const int StructSize = sizeof(float) * 3 * 3;
     }
 
     public static ComputeShader surfaceLevelGeneratorShader;
@@ -64,7 +69,7 @@ class TerrainChunkMeshGenerator
         GenerateMesh();
     }
 
-    public Dictionary<Vector3, float> Alter(Vector3 spherePosition, float sphereRadius, float power)
+    public Dictionary<Vector3, float> Alter(Vector3 spherePosition, float sphereRadius, float power, HashSet<TerrainChunkIndex> additionalIndices)
     {
         Dictionary<Vector3, float> alterations = new Dictionary<Vector3, float>(new TerrainChunkAlterationManager.Vector3Comparer());
         for (int i = 0; i < points.Length; i++)
@@ -73,6 +78,7 @@ class TerrainChunkMeshGenerator
             {
                 points[i].surfaceLevel += power;
                 alterations[points[i].position] = points[i].surfaceLevel;
+                index.GetAdjacentToManipulate(points[i].onEdges, additionalIndices);
             }
         }
         GenerateMeshWithPoints();
@@ -135,7 +141,7 @@ class TerrainChunkMeshGenerator
         }
 
         points = new Point[constraint.GetVolume()];
-        ComputeBuffer outputPoints = new ComputeBuffer(points.Length, 16);
+        ComputeBuffer outputPoints = new ComputeBuffer(points.Length, Point.StructSize);
         surfaceLevelShader.SetBuffer("points", outputPoints);
 
         ComputeBuffer offsetsBuffer = new ComputeBuffer(offsets.Length, 12);
@@ -173,10 +179,10 @@ class TerrainChunkMeshGenerator
     private void GenerateTriangles(ComputeShaderProperty[] marchingCubesShaderProperties)
     {
         ComputeBuffer triangleBuffer = new ComputeBuffer(
-            constraint.GetTrianglesVolume(), 36, ComputeBufferType.Append);
+            constraint.GetTrianglesVolume(), Triangle.StructSize, ComputeBufferType.Append);
         triangleBuffer.SetCounterValue(0);
         ComputeBuffer triangleCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
-        ComputeBuffer inputPoints = new ComputeBuffer(points.Length, 16);
+        ComputeBuffer inputPoints = new ComputeBuffer(points.Length, Point.StructSize);
         inputPoints.SetData(points);
 
         marchingCubesShader.SetBuffer("triangles", triangleBuffer);

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TerrainLoadingObject : MonoBehaviour
 {
-    /*        
+    /*    
     - Adding an option to change how many points are in a chunk (without making it larger) would be nice.
     - Change terrain loading to more efficient and possibly to where the player looks
     -- Test the option of dispatching from different threads (on C#)
@@ -30,6 +30,20 @@ public class TerrainLoadingObject : MonoBehaviour
     void Start()
     {
         InitializeTerrain();
+    }
+
+    void Update()
+    {
+        List<TerrainChunkIndex> indicesToUpdate = TerrainChunkIndex.GetChunksToUpdate(
+            loadingObject.transform.position,
+            renderDistance);
+        UpdateChunks(indicesToUpdate, TerrainChunkIndex.GetTerrainY(loadingObject.transform.position) != lastTerrainY);
+        List<TerrainChunkIndex> indicesToLoad = TerrainChunkIndex.GetChunksToLoad(
+            loadingObject.transform.position,
+            renderDistance,
+            indicesToUpdate,
+            loadedChunks);
+        LoadChunks(indicesToLoad);
     }
 
     private void InitializeTerrain()
@@ -59,7 +73,7 @@ public class TerrainLoadingObject : MonoBehaviour
             {
                 if (loadedChunk.index.Equals(indexToUpdate))
                 {
-                    if (recreate && false) // Notice this is disabled
+                    if (recreate)
                     {
                         loadedChunk.Create(GenerateConstraintScale(), GenerateConstraintY());
                         lastTerrainY = TerrainChunkIndex.GetTerrainY(loadingObject.transform.position);
@@ -86,19 +100,5 @@ public class TerrainLoadingObject : MonoBehaviour
     private float GenerateConstraintY()
     {
         return Mathf.RoundToInt(loadingObject.transform.position.y) - renderDistance * TerrainChunk.ChunkSize.y;
-    }
-
-    void Update()
-    {
-        List<TerrainChunkIndex> indicesToUpdate = TerrainChunkIndex.GetChunksToUpdate(
-            loadingObject.transform.position,
-            renderDistance);
-        UpdateChunks(indicesToUpdate, TerrainChunkIndex.GetTerrainY(loadingObject.transform.position) != lastTerrainY);
-        List<TerrainChunkIndex> indicesToLoad = TerrainChunkIndex.GetChunksToLoad(
-            loadingObject.transform.position,
-            renderDistance,
-            indicesToUpdate,
-            loadedChunks);
-        LoadChunks(indicesToLoad);
     }
 }
