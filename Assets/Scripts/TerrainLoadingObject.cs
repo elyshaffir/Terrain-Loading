@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using static TerrainChunkIndex;
 
@@ -57,7 +56,7 @@ public class TerrainLoadingObject : MonoBehaviour
         foreach (TerrainChunkIndex indexToLoad in indicesToLoad)
         {
             TerrainChunk chunkToAdd = new TerrainChunk(indexToLoad);
-            chunkToAdd.Create(GenerateConstraintScale());
+            chunkToAdd.Create();
             loadedChunks.Add(chunkToAdd);
         }
     }
@@ -73,10 +72,5 @@ public class TerrainLoadingObject : MonoBehaviour
                 loadedChunks.Remove(loadedChunk);
             }
         }
-    }
-
-    private Vector3Int GenerateConstraintScale()
-    {
-        return new Vector3Int(1, 1, 1);
     }
 }

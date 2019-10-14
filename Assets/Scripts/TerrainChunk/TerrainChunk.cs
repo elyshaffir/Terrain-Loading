@@ -23,9 +23,9 @@ public class TerrainChunk
         TerrainChunkAlterationManager.CreateChunk(index);
     }
 
-    public void Create(Vector3Int scale)
+    public void Create()
     {
-        meshGenerator.Update(scale);
+        meshGenerator.GenerateMesh();
         terrainObject.GetComponent<MeshCollider>().sharedMesh = meshGenerator.mesh;
     }
 

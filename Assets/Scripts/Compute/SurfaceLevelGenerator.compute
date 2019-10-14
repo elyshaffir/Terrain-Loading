@@ -11,6 +11,9 @@ struct Point { // Appears twice since importing in HLSL is a headache
 };
 
 RWStructuredBuffer<Point> points;
+AppendStructuredBuffer<int> relevant;
+AppendStructuredBuffer<int> irrelevant;
+
 int numPointsX;
 int numPointsY;
 int numPointsZ;
@@ -27,6 +30,8 @@ float4 params;
 float hardFloor;
 float hardFloorWeight;
 float offsetNoise; // basically seed
+
+float isoLevel;
 
 float generateNoise(float3 pos)
 {	
@@ -99,7 +104,12 @@ void GenerateSurfaceLevel(uint3 id : SV_DispatchThreadID)
 		
 		Point p;
 		p.position = pos;
-		p.surfaceLevel = -pos.y + generatedNoise;				
+		p.surfaceLevel = -pos.y + generatedNoise;
+		if (p.surfaceLevel < isoLevel) {
+			relevant.Append(1);
+		} else {
+			irrelevant.Append(1);
+		}
 		p.onEdges = calculateOnEdges(id.x, id.y, id.z);
 		points[index] = p;		
 	}
