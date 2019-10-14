@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static TerrainChunkIndex;
 
 public class TerrainLoadingObject : MonoBehaviour
 {
@@ -18,12 +19,10 @@ public class TerrainLoadingObject : MonoBehaviour
     public int renderDistance;
 
     private List<TerrainChunk> loadedChunks;
-    private int lastTerrainY;
 
     void Awake()
     {
         loadedChunks = new List<TerrainChunk>();
-        lastTerrainY = TerrainChunkIndex.GetTerrainY(loadingObject.transform.position);
     }
 
     void Start()
@@ -36,7 +35,7 @@ public class TerrainLoadingObject : MonoBehaviour
         List<TerrainChunkIndex> indicesToUpdate = TerrainChunkIndex.GetChunksToUpdate(
             loadingObject.transform.position,
             renderDistance);
-        UpdateChunks(indicesToUpdate, TerrainChunkIndex.GetTerrainY(loadingObject.transform.position) != lastTerrainY);
+        RemoveChunks(new HashSet<TerrainChunkIndex>(indicesToUpdate, new TerrainChunkIndexComparer()));
         List<TerrainChunkIndex> indicesToLoad = TerrainChunkIndex.GetChunksToLoad(
             loadingObject.transform.position,
             renderDistance,
@@ -58,46 +57,26 @@ public class TerrainLoadingObject : MonoBehaviour
         foreach (TerrainChunkIndex indexToLoad in indicesToLoad)
         {
             TerrainChunk chunkToAdd = new TerrainChunk(indexToLoad);
-            chunkToAdd.Create(GenerateConstraintScale(), GenerateConstraintY());
+            chunkToAdd.Create(GenerateConstraintScale());
             loadedChunks.Add(chunkToAdd);
         }
     }
 
-    private void UpdateChunks(List<TerrainChunkIndex> indicesToUpdate, bool recreate)
+    private void RemoveChunks(HashSet<TerrainChunkIndex> indicesToUpdate)
     {
-        List<TerrainChunk> newLoadedChunks = new List<TerrainChunk>();
-        foreach (TerrainChunkIndex indexToUpdate in indicesToUpdate)
+        for (int i = 0; i < loadedChunks.Count; i++)
         {
-            foreach (TerrainChunk loadedChunk in loadedChunks)
-            {
-                if (loadedChunk.index.Equals(indexToUpdate))
-                {
-                    if (recreate)
-                    {
-                        loadedChunk.Create(GenerateConstraintScale(), GenerateConstraintY());
-                        lastTerrainY = TerrainChunkIndex.GetTerrainY(loadingObject.transform.position);
-                    }
-                    newLoadedChunks.Add(loadedChunk);
-                }
-            }
-        }
-        foreach (TerrainChunk loadedChunk in loadedChunks)
-        {
-            if (!newLoadedChunks.Contains(loadedChunk))
+            TerrainChunk loadedChunk = loadedChunks[i];
+            if (!indicesToUpdate.Contains(loadedChunk.index))
             {
                 loadedChunk.Destroy();
+                loadedChunks.Remove(loadedChunk);
             }
         }
-        loadedChunks = newLoadedChunks;
     }
 
     private Vector3Int GenerateConstraintScale()
     {
-        return new Vector3Int(1, renderDistance * 2 + 1, 1);
-    }
-
-    private float GenerateConstraintY()
-    {
-        return Mathf.RoundToInt(loadingObject.transform.position.y) - renderDistance * TerrainChunk.ChunkSize.y;
+        return new Vector3Int(1, 1, 1);
     }
 }

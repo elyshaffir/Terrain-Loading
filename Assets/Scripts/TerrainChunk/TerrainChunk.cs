@@ -9,7 +9,7 @@ public class TerrainChunk
 
     public readonly TerrainChunkIndex index;
 
-    private GameObject terrainObject;
+    public GameObject terrainObject;
     private TerrainChunkMeshGenerator meshGenerator;
 
     public TerrainChunk(TerrainChunkIndex index)
@@ -23,9 +23,9 @@ public class TerrainChunk
         TerrainChunkAlterationManager.CreateChunk(index);
     }
 
-    public void Create(Vector3Int scale, float newConstraintY)
+    public void Create(Vector3Int scale)
     {
-        meshGenerator.Update(scale, newConstraintY);
+        meshGenerator.Update(scale);
         terrainObject.GetComponent<MeshCollider>().sharedMesh = meshGenerator.mesh;
     }
 

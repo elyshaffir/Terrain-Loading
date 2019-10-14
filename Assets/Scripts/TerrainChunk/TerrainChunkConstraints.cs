@@ -17,11 +17,6 @@ public class TerrainChunkConstraint
         scale = new Vector3Int(Mathf.Max(scale.x, 1), Mathf.Max(scale.y, 1), Mathf.Max(scale.z, 1));
     }
 
-    public void UpdateY(float loadingObjectY)
-    {
-        position = new Vector3(position.x, loadingObjectY, position.z);
-    }
-
     public int GetVolume()
     {
         return scale.x * TerrainChunk.ChunkSize.x * scale.y * TerrainChunk.ChunkSize.y * scale.z * TerrainChunk.ChunkSize.z;
@@ -29,6 +24,6 @@ public class TerrainChunkConstraint
 
     public int GetTrianglesVolume()
     {
-        return GetVolume() / 2; // Because for each 8 points the maximum is 4
+        return GetVolume();
     }
 }

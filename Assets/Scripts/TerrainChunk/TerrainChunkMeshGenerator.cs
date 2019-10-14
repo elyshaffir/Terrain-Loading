@@ -9,9 +9,9 @@ class TerrainChunkMeshGenerator
 #pragma warning disable 649
         public Vector3 position;
         public float surfaceLevel;
-        public Vector2 onEdges;
+        public Vector3 onEdges;
 
-        public const int StructSize = sizeof(float) * 3 + sizeof(float) + sizeof(float) * 2;
+        public const int StructSize = sizeof(float) * 3 + sizeof(float) + sizeof(float) * 3;
     }
 
     private struct Triangle
@@ -62,10 +62,9 @@ class TerrainChunkMeshGenerator
         triangles = new Triangle[] { };
     }
 
-    public void Update(Vector3Int scaleFactor, float newConstraintY)
+    public void Update(Vector3Int scaleFactor)
     {
         constraint.UpdateScale(scaleFactor);
-        constraint.UpdateY(newConstraintY);
         GenerateMesh();
     }
 
@@ -161,7 +160,6 @@ class TerrainChunkMeshGenerator
         }
         foreach (KeyValuePair<Vector3, float> alteration in alterations)
         {
-            // sometimes, alteration.Key is not in pointIndices, this occures when the height is being changed.
             points[pointIndices[alteration.Key]].surfaceLevel = alteration.Value;
         }
     }

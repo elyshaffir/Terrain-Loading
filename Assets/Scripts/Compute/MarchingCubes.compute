@@ -6,7 +6,7 @@ static const int numThreadsMarchCubes = 9; // The chunk size - 1
 struct Point { // Appears twice since importing in HLSL is a headache
 	float3 position;	
 	float surfaceLevel;
-	float2 onEdges;
+	float3 onEdges;
 };
 
 struct Triangle {

@@ -5,11 +5,13 @@ using UnityEngine;
 public class TerrainChunkIndex
 {
     private readonly int x;
+    private readonly int y;
     private readonly int z;
 
-    public TerrainChunkIndex(int x, int z)
+    public TerrainChunkIndex(int x, int y, int z)
     {
         this.x = x;
+        this.y = y;
         this.z = z;
     }
 
@@ -19,9 +21,12 @@ public class TerrainChunkIndex
         List<TerrainChunkIndex> chunksToUpdate = new List<TerrainChunkIndex>();
         for (int x = loadingObjectIndex.x + renderDistance - 1; x > loadingObjectIndex.x - renderDistance - 1; x--)
         {
-            for (int z = loadingObjectIndex.z + renderDistance - 1; z > loadingObjectIndex.z - renderDistance - 1; z--)
+            for (int y = loadingObjectIndex.y + renderDistance - 1; y > loadingObjectIndex.y - renderDistance - 1; y--)
             {
-                chunksToUpdate.Add(new TerrainChunkIndex(x, z));
+                for (int z = loadingObjectIndex.z + renderDistance - 1; z > loadingObjectIndex.z - renderDistance - 1; z--)
+                {
+                    chunksToUpdate.Add(new TerrainChunkIndex(x, y, z));
+                }
             }
         }
         return chunksToUpdate;
@@ -55,52 +60,49 @@ public class TerrainChunkIndex
         return chunksToLoad;
     }
 
-    public void GetAdjacentToManipulate(Vector2 onEdges, HashSet<TerrainChunkIndex> additionalIndices)
+    public void GetAdjacentToManipulate(Vector3 onEdges, HashSet<TerrainChunkIndex> additionalIndices)
     {
         if (onEdges.x != 0)
         {
-            additionalIndices.Add(new TerrainChunkIndex(x + Math.Sign(onEdges.x), z));
+            additionalIndices.Add(new TerrainChunkIndex(x + Math.Sign(onEdges.x), y, z));
         }
 
         if (onEdges.y != 0)
         {
-            additionalIndices.Add(new TerrainChunkIndex(x, z + Math.Sign(onEdges.y)));
+            additionalIndices.Add(new TerrainChunkIndex(x, y + Math.Sign(onEdges.y), z));
             if (onEdges.x != 0)
             {
-                additionalIndices.Add(new TerrainChunkIndex(x + Math.Sign(onEdges.x), z + Math.Sign(onEdges.y)));
+                additionalIndices.Add(new TerrainChunkIndex(x + Math.Sign(onEdges.x), y + Math.Sign(onEdges.y), z));
+            }
+        }
+
+        if (onEdges.z != 0)
+        {
+            additionalIndices.Add(new TerrainChunkIndex(x, y, z + Math.Sign(onEdges.z)));
+            if (onEdges.y != 0)
+            {
+                additionalIndices.Add(new TerrainChunkIndex(x, y + Math.Sign(onEdges.y), z + Math.Sign(onEdges.z)));
+                if (onEdges.x != 0)
+                {
+                    additionalIndices.Add(new TerrainChunkIndex(x + Math.Sign(onEdges.x), y + Math.Sign(onEdges.y), z + Math.Sign(onEdges.z)));
+                }
             }
         }
     }
 
-    public bool InRange(TerrainChunkIndex loadingObjectIndex, int renderDistance)
-    {
-        return Math.Abs(loadingObjectIndex.x - x) <= renderDistance &&
-            Math.Abs(loadingObjectIndex.z - z) <= renderDistance;
-    }
-
     public static TerrainChunkIndex FromVector(Vector3 v)
     {
-        return new TerrainChunkIndex(Mathf.FloorToInt(v.x / TerrainChunk.ChunkSize.x), Mathf.FloorToInt(v.z / TerrainChunk.ChunkSize.z));
+        return new TerrainChunkIndex(Mathf.FloorToInt(v.x / TerrainChunk.ChunkSize.x), Mathf.FloorToInt(v.y / TerrainChunk.ChunkSize.y), Mathf.FloorToInt(v.z / TerrainChunk.ChunkSize.z));
     }
 
     public Vector3 ToPosition()
     {
-        return new Vector3(x * TerrainChunk.ChunkSize.x, 0, z * TerrainChunk.ChunkSize.z);
+        return new Vector3(x * TerrainChunk.ChunkSize.x, y * TerrainChunk.ChunkSize.y, z * TerrainChunk.ChunkSize.z);
     }
 
     public bool Equals(TerrainChunkIndex index)
     {
-        return x == index.x && z == index.z;
-    }
-
-    public bool IsAdjacent(TerrainChunkIndex index, int distance) // This includes the case where both are equal
-    {
-        return Mathf.Abs(x - index.x) + Mathf.Abs(z - index.z) <= distance;
-    }
-
-    public static int GetTerrainY(Vector3 position)
-    {
-        return Mathf.RoundToInt(position.y / TerrainChunk.ChunkSize.y);
+        return x == index.x && y == index.y && z == index.z;
     }
 
     public class TerrainChunkIndexComparer : IEqualityComparer<TerrainChunkIndex>
@@ -113,7 +115,7 @@ public class TerrainChunkIndex
         public int GetHashCode(TerrainChunkIndex obj)
         {
             if (obj == null) return 0;
-            return obj.x.GetHashCode() ^ obj.z.GetHashCode();
+            return obj.x.GetHashCode() ^ obj.y.GetHashCode() << 2 ^ obj.z.GetHashCode() >> 2;
         }
     }
 }
