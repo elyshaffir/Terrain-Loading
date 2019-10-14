@@ -78,6 +78,7 @@ class TerrainChunkMeshGenerator
             {
                 points[i].surfaceLevel += power;
                 alterations[points[i].position] = points[i].surfaceLevel;
+
                 index.GetAdjacentToManipulate(points[i].onEdges, additionalIndices);
             }
         }
@@ -134,19 +135,9 @@ class TerrainChunkMeshGenerator
 
     private void GeneratePoints(ComputeShaderProperty[] surfaceLevelShaderProperties)
     {
-        Vector3[] offsets = new Vector3[6]; // Figure out what this is
-        for (int i = 0; i < offsets.Length; i++)
-        {
-            offsets[i] = Vector3.one;
-        }
-
         points = new Point[constraint.GetVolume()];
         ComputeBuffer outputPoints = new ComputeBuffer(points.Length, Point.StructSize);
         surfaceLevelShader.SetBuffer("points", outputPoints);
-
-        ComputeBuffer offsetsBuffer = new ComputeBuffer(offsets.Length, 12);
-        offsetsBuffer.SetData(offsets);
-        surfaceLevelShader.SetBuffer("offsets", offsetsBuffer);
 
         surfaceLevelShader.Dispatch(
             constraint.scale.x * TerrainChunk.ChunkSize.x / 5,
@@ -158,21 +149,20 @@ class TerrainChunkMeshGenerator
         ApplyAlterations();
 
         outputPoints.Release();
-        offsetsBuffer.Release();
     }
 
     private void ApplyAlterations()
     {
         Dictionary<Vector3, float> alterations = TerrainChunkAlterationManager.alterations[index];
+        Dictionary<Vector3, int> pointIndices = new Dictionary<Vector3, int>();
+        for (int i = 0; i < points.Length; i++)
+        {
+            pointIndices.Add(points[i].position, i);
+        }
         foreach (KeyValuePair<Vector3, float> alteration in alterations)
         {
-            for (int i = 0; i < points.Length; i++)
-            {
-                if (points[i].position.Equals(alteration.Key))
-                {
-                    points[i].surfaceLevel = alteration.Value;
-                }
-            }
+            // sometimes, alteration.Key is not in pointIndices, this occures when the height is being changed.
+            points[pointIndices[alteration.Key]].surfaceLevel = alteration.Value;
         }
     }
 

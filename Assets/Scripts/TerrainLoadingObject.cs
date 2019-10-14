@@ -5,12 +5,11 @@ using UnityEngine;
 public class TerrainLoadingObject : MonoBehaviour
 {
     /*    
-    - Adding an option to change how many points are in a chunk (without making it larger) would be nice.
     - Change terrain loading to more efficient and possibly to where the player looks
     -- Test the option of dispatching from different threads (on C#)
-    -- Also make sure the chunks don't refresh ever - very inefficient and will mess with the terrain editor
-    - Implement terrain editor    
-    - Organize the code / documents (imports, namespaces etc.) to prepare for importing to other projects.
+    -- Also make sure the chunks don't refresh ever - very inefficient and will mess with the terrain editor     
+    - Adding an option to change how many points are in a chunk (without making it larger) would be nice.
+    - Organize the code / documents (imports, namespaces etc.) to prepare for importing to other projects.    
      */
     public GameObject loadingObject;
     public GameObject terrainChunkPrefab;

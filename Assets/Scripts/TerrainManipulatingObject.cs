@@ -5,23 +5,13 @@ using static TerrainChunkIndex;
 
 public class TerrainManipulatingObject : MonoBehaviour
 {
-    /*    
-    -Terrain Manipulation is working, but with the following limitations:                
-        1. When loading alterations, it is very slow.
-        2. Altering power doesn't matter
-     */
-    /*
-    Can use this for snow effect (the snow could also re-grow with the wind or somehing)
-     */
-
     public GameObject loadingGroupObject;
-    public int maxRange = 1000;
-    public float power = .1f;
 
     private const float RESIZE_SPEED = 55f;
-
     private const float MIN_SCALE = .1f;
     private const float MAX_SCALE = 7f;
+    private const int MAX_RANGE = 100;
+    private const float ALTERING_POWER = 1f;
 
 
     private GameObject sphereTool;
@@ -39,7 +29,7 @@ public class TerrainManipulatingObject : MonoBehaviour
 
     private void MoveTerrainSphere()
     {
-        if (Physics.Raycast(transform.position, transform.forward, out RaycastHit hit, maxRange))
+        if (Physics.Raycast(transform.position, transform.forward, out RaycastHit hit, MAX_RANGE))
         {
             sphereTool.GetComponent<SmoothMover>().ChageTargetPosition(hit.point);
         }
@@ -50,11 +40,11 @@ public class TerrainManipulatingObject : MonoBehaviour
         ResizeTerrainSphere();
         if (Input.GetMouseButton(0))
         {
-            AlterTerrain(power);
+            AlterTerrain(ALTERING_POWER);
         }
         else if (Input.GetMouseButton(1))
         {
-            AlterTerrain(-power);
+            AlterTerrain(-ALTERING_POWER);
         }
     }
 
@@ -74,15 +64,14 @@ public class TerrainManipulatingObject : MonoBehaviour
         }
     }
 
-    private void AlterTerrain(float power)
+    private void AlterTerrain(float alteringPower)
     {
-        Debug.ClearDeveloperConsole();
-        AlterTerrain(power,
+        AlterTerrain(alteringPower,
                 new HashSet<TerrainChunkIndex>(new TerrainChunkIndexComparer()) { TerrainChunkIndex.FromVector(sphereTool.transform.position) },
                 new HashSet<TerrainChunkIndex>(new TerrainChunkIndexComparer()));
     }
 
-    private void AlterTerrain(float power, HashSet<TerrainChunkIndex> indices, HashSet<TerrainChunkIndex> chunksDone)
+    private void AlterTerrain(float alteringPower, HashSet<TerrainChunkIndex> indices, HashSet<TerrainChunkIndex> chunksDone)
     {
         foreach (TerrainChunkBehaviour terrainChunk in loadingGroupObject.GetComponentsInChildren<TerrainChunkBehaviour>())
         {
@@ -94,10 +83,10 @@ public class TerrainManipulatingObject : MonoBehaviour
                     terrainChunk.Alter(
                         sphereTool.transform.position,
                         sphereTool.transform.localScale.x / 2,
-                        power,
+                        alteringPower,
                         newIndices);
                     chunksDone.Add(terrainChunk.chunk.index);
-                    AlterTerrain(power, newIndices, chunksDone);
+                    AlterTerrain(alteringPower, newIndices, chunksDone);
                 }
             }
         }

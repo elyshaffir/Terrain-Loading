@@ -455,7 +455,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   loadingGroupObject: {fileID: 1375316465}
   maxRange: 100
-  power: 100
+  alteringPower: 1
 --- !u!1001 &1263894344
 PrefabInstance:
   m_ObjectHideFlags: 0
