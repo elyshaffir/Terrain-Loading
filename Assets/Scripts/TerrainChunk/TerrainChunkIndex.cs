@@ -33,7 +33,6 @@ public class TerrainChunkIndex
     }
 
     public static List<TerrainChunkIndex> GetChunksToLoad(Vector3 loadingChunkPosition,
-        int renderDistance,
         List<TerrainChunkIndex> chunksToLoad,
         List<TerrainChunk> loadedChunks)
     {
@@ -92,16 +91,28 @@ public class TerrainChunkIndex
 
     public static TerrainChunkIndex FromVector(Vector3 v)
     {
-        return new TerrainChunkIndex(Mathf.FloorToInt(v.x / TerrainChunk.ChunkSize.x), Mathf.FloorToInt(v.y / TerrainChunk.ChunkSize.y), Mathf.FloorToInt(v.z / TerrainChunk.ChunkSize.z));
+        return new TerrainChunkIndex(
+            Mathf.FloorToInt(v.x / TerrainChunk.ChunkSize.x),
+            Mathf.FloorToInt(v.y / TerrainChunk.ChunkSize.y),
+            Mathf.FloorToInt(v.z / TerrainChunk.ChunkSize.z)
+        );
     }
 
     public Vector3 ToPosition()
     {
-        return new Vector3(x * TerrainChunk.ChunkSize.x, y * TerrainChunk.ChunkSize.y, z * TerrainChunk.ChunkSize.z);
+        return new Vector3(
+            x * TerrainChunk.ChunkSize.x,
+            y * TerrainChunk.ChunkSize.y,
+            z * TerrainChunk.ChunkSize.z
+        );
     }
 
     public bool Equals(TerrainChunkIndex index)
     {
+        if (index == null)
+        {
+            return false;
+        }
         return x == index.x && y == index.y && z == index.z;
     }
 

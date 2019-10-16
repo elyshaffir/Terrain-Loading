@@ -23,9 +23,30 @@ public class TerrainChunk
         TerrainChunkAlterationManager.CreateChunk(index);
     }
 
-    public void Create()
+    public void PhaseOne()
     {
-        meshGenerator.GenerateMesh();
+        meshGenerator.surfaceLevelShader.SetBuffers();
+        meshGenerator.surfaceLevelShader.Dispatch();
+    }
+
+    public bool PhaseTwo()
+    {
+        meshGenerator.surfaceLevelShader.GetData();
+        meshGenerator.surfaceLevelShader.Release();
+        return meshGenerator.ApplyAlterations() || meshGenerator.surfaceLevelShader.IsRelevant();
+    }
+
+    public void PhaseThree()
+    {
+        meshGenerator.marchingCubesShader.SetBuffers();
+        meshGenerator.marchingCubesShader.Dispatch();
+    }
+
+    public void PhaseFour()
+    {
+        meshGenerator.marchingCubesShader.GetData();
+        meshGenerator.marchingCubesShader.Release();
+        meshGenerator.CreateMesh();
         terrainObject.GetComponent<MeshCollider>().sharedMesh = meshGenerator.mesh;
     }
 
@@ -38,10 +59,5 @@ public class TerrainChunk
     public void Destroy()
     {
         MonoBehaviour.Destroy(terrainObject);
-    }
-
-    public Vector3 GetScale()
-    {
-        return meshGenerator.constraint.scale * ChunkSize;
     }
 }

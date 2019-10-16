@@ -4,11 +4,16 @@ using static TerrainChunkIndex;
 
 public class TerrainLoadingObject : MonoBehaviour
 {
-    /*    
-    - Change terrain loading to more efficient and possibly to where the player looks
-    -- Test the option of dispatching from different threads (on C#)
-    -- Also make sure the chunks don't refresh ever - very inefficient and will mess with the terrain editor     
-    - Adding an option to change how many points are in a chunk (without making it larger) would be nice.
+    /*
+        NEW LOADING SYSTEM
+        ------------------
+
+        - Preformence issues rise when more than one chunk is being generated
+        - Look into a static class in which all of the compute-shader-dispatching will happen, that will allow working on multiple chunks at once
+        -- And will solve the problem where you can't do many things from a separate thread / job.
+        --- This will be probably implemented via a static Queue and an UpdateJobs() method being called every frame.
+     */
+    /*
     - Organize the code / documents (imports, namespaces etc.) to prepare for importing to other projects.    
      */
     public GameObject loadingObject;
@@ -18,6 +23,7 @@ public class TerrainLoadingObject : MonoBehaviour
     public int renderDistance;
 
     private List<TerrainChunk> loadedChunks;
+    private TerrainChunkIndex currentTerrainChunkIndex;
 
     void Awake()
     {
@@ -29,26 +35,37 @@ public class TerrainLoadingObject : MonoBehaviour
         InitializeTerrain();
     }
 
-    void Update()
-    {
-        List<TerrainChunkIndex> indicesToUpdate = TerrainChunkIndex.GetChunksToUpdate(
-            loadingObject.transform.position,
-            renderDistance);
-        RemoveChunks(new HashSet<TerrainChunkIndex>(indicesToUpdate, new TerrainChunkIndexComparer()));
-        List<TerrainChunkIndex> indicesToLoad = TerrainChunkIndex.GetChunksToLoad(
-            loadingObject.transform.position,
-            renderDistance,
-            indicesToUpdate,
-            loadedChunks);
-        LoadChunks(indicesToLoad);
-    }
-
     private void InitializeTerrain()
     {
         TerrainChunk.prefab = terrainChunkPrefab;
         TerrainChunk.parent = transform;
         TerrainChunkMeshGenerator.Init(surfaceLevelGeneratorShader, marchingCubesGeneratorShader);
+        TerrainChunkLoadingManager.Init();
         TerrainChunkAlterationManager.Init();
+    }
+
+    void Update()
+    {
+        TerrainChunkLoadingManager.Update();
+        TerrainChunkIndex newTerrainChunkIndex = TerrainChunkIndex.FromVector(loadingObject.transform.position);
+        if (!newTerrainChunkIndex.Equals(currentTerrainChunkIndex))
+        {
+            ManageChunks();
+            currentTerrainChunkIndex = newTerrainChunkIndex;
+        }
+    }
+
+    private void ManageChunks()
+    {
+        List<TerrainChunkIndex> indicesToUpdate = TerrainChunkIndex.GetChunksToUpdate(
+                    loadingObject.transform.position,
+                    renderDistance);
+        RemoveChunks(new HashSet<TerrainChunkIndex>(indicesToUpdate, new TerrainChunkIndexComparer()));
+        List<TerrainChunkIndex> indicesToLoad = TerrainChunkIndex.GetChunksToLoad(
+            loadingObject.transform.position,
+            indicesToUpdate,
+            loadedChunks);
+        LoadChunks(indicesToLoad);
     }
 
     private void LoadChunks(List<TerrainChunkIndex> indicesToLoad)
@@ -56,7 +73,7 @@ public class TerrainLoadingObject : MonoBehaviour
         foreach (TerrainChunkIndex indexToLoad in indicesToLoad)
         {
             TerrainChunk chunkToAdd = new TerrainChunk(indexToLoad);
-            chunkToAdd.Create();
+            TerrainChunkLoadingManager.chunksToLoad.Add(chunkToAdd);
             loadedChunks.Add(chunkToAdd);
         }
     }

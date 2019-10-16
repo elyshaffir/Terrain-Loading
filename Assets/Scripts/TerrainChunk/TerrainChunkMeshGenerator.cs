@@ -1,10 +1,9 @@
 using System.Collections.Generic;
-using Assets.Scripts.ComputeShaderObject;
 using UnityEngine;
 
-class TerrainChunkMeshGenerator
+public class TerrainChunkMeshGenerator
 {
-    public struct Point
+    public struct Point // Change location of structs
     {
 #pragma warning disable 649
         public Vector3 position;
@@ -14,7 +13,7 @@ class TerrainChunkMeshGenerator
         public const int StructSize = sizeof(float) * 3 + sizeof(float) + sizeof(float) * 3;
     }
 
-    private struct Triangle
+    public struct Triangle
     {
 #pragma warning disable 649
         internal Vector3 vertexC;
@@ -24,25 +23,20 @@ class TerrainChunkMeshGenerator
         internal const int StructSize = sizeof(float) * 3 * 3;
     }
 
-    public static ComputeShader surfaceLevelGeneratorShader;
-    public static ComputeShader marchingCubesGeneratorShader;
-
-    private static float seed;
-
     public Mesh mesh;
     public readonly TerrainChunkConstraint constraint;
+    public Triangle[] triangles;
+    public Point[] points;
+    public SurfaceLevelShader surfaceLevelShader;
+    public MarchingCubesShader marchingCubesShader;
 
     private TerrainChunkIndex index;
-    private ComputeShaderObject surfaceLevelShader;
-    private ComputeShaderObject marchingCubesShader;
-    private Point[] points;
-    private Triangle[] triangles;
 
     public static void Init(ComputeShader surfaceLevelGeneratorShader, ComputeShader marchingCubesGeneratorShader)
     {
-        TerrainChunkMeshGenerator.surfaceLevelGeneratorShader = surfaceLevelGeneratorShader;
-        TerrainChunkMeshGenerator.marchingCubesGeneratorShader = marchingCubesGeneratorShader;
-        seed = Random.Range(-1000000f, 1000000f);
+        SurfaceLevelShader.surfaceLevelGeneratorShader = surfaceLevelGeneratorShader;
+        SurfaceLevelShader.seed = Random.Range(-1000000f, 1000000f);
+        MarchingCubesShader.marchingCubesGeneratorShader = marchingCubesGeneratorShader;
     }
 
     public TerrainChunkMeshGenerator(TerrainChunkIndex index)
@@ -50,19 +44,13 @@ class TerrainChunkMeshGenerator
         this.index = index;
         constraint = new TerrainChunkConstraint(index.ToPosition());
 
-        surfaceLevelShader = new ComputeShaderObject(
-            surfaceLevelGeneratorShader,
-            surfaceLevelGeneratorShader.FindKernel("GenerateSurfaceLevel"));
-        marchingCubesShader = new ComputeShaderObject(
-            marchingCubesGeneratorShader,
-            marchingCubesGeneratorShader.FindKernel("MarchCubes"));
+        surfaceLevelShader = new SurfaceLevelShader(this);
+        marchingCubesShader = new MarchingCubesShader(this);
 
         mesh = new Mesh();
-        points = new Point[] { };
-        triangles = new Triangle[] { };
     }
 
-    public Dictionary<Vector3, float> Alter(Vector3 spherePosition, float sphereRadius, float power, HashSet<TerrainChunkIndex> additionalIndices)
+    public Dictionary<Vector3, float> Alter(Vector3 spherePosition, float sphereRadius, float power, HashSet<TerrainChunkIndex> additionalIndices) // Move altering to multiple threads possibly
     {
         Dictionary<Vector3, float> alterations = new Dictionary<Vector3, float>(new TerrainChunkAlterationManager.Vector3Comparer());
         for (int i = 0; i < points.Length; i++)
@@ -79,99 +67,13 @@ class TerrainChunkMeshGenerator
         return alterations;
     }
 
-    public void GenerateMesh()
-    {
-        ComputeShaderProperty[] surfaceLevelShaderProperties = GetSurfaceLevelProperties();
-        if (GeneratePoints(surfaceLevelShaderProperties))
-        {
-            ComputeShaderProperty[] marchingCubesShaderProperties = GetMarchingCubesProperties();
-            GenerateTriangles(marchingCubesShaderProperties);
-            CreateMesh();
-        }
-    }
-
     private void GenerateMeshWithPoints()
     {
-        ComputeShaderProperty[] marchingCubesShaderProperties = GetMarchingCubesProperties();
-        GenerateTriangles(marchingCubesShaderProperties);
+        GenerateTriangles();
         CreateMesh();
     }
 
-    private ComputeShaderProperty[] GetMarchingCubesProperties()
-    {
-        return new ComputeShaderProperty[] {
-                new ComputeShaderIntProperty("numPointsX", constraint.scale.x * TerrainChunk.ChunkSize.x),
-                new ComputeShaderIntProperty("numPointsY", constraint.scale.y * TerrainChunk.ChunkSize.y),
-                new ComputeShaderIntProperty("numPointsZ", constraint.scale.z *TerrainChunk.ChunkSize.z),
-                new ComputeShaderFloatProperty("isoLevel", -3.5f) // Note that it is hard coded
-            };
-    }
-
-    private ComputeShaderProperty[] GetSurfaceLevelProperties()
-    {
-        return new ComputeShaderProperty[] {
-            new ComputeShaderIntProperty("numPointsX", constraint.scale.x * TerrainChunk.ChunkSize.x),
-            new ComputeShaderIntProperty("numPointsY", constraint.scale.y * TerrainChunk.ChunkSize.y),
-            new ComputeShaderIntProperty("numPointsZ", constraint.scale.z *TerrainChunk.ChunkSize.z),
-            new ComputeShaderFloatProperty("noiseScale", .94f),
-            new ComputeShaderIntProperty("octaves", 6),
-            new ComputeShaderVector3Property("offset", constraint.position),
-            new ComputeShaderFloatProperty("weightMultiplier", 1.9f),
-            new ComputeShaderFloatProperty("persistence", .5f),
-            new ComputeShaderFloatProperty("lacunarity", 2f),
-            new ComputeShaderFloatProperty("floorOffset", 1f),
-            new ComputeShaderFloatProperty("noiseWeight", 9.19f),
-            new ComputeShaderVector4Property("params", new Vector4(1, 1, 1, 1)),
-            new ComputeShaderFloatProperty("hardFloor", 1f),
-            new ComputeShaderFloatProperty("hardFloorWeight", 37f),
-            new ComputeShaderFloatProperty("offsetNoise", seed),
-            new ComputeShaderFloatProperty("isoLevel", -3.5f) // Note that it is hard coded            
-        };
-    }
-
-    private bool GeneratePoints(ComputeShaderProperty[] surfaceLevelShaderProperties)
-    {
-        points = new Point[constraint.GetVolume()];
-        ComputeBuffer outputPoints = new ComputeBuffer(points.Length, Point.StructSize);
-        ComputeBuffer relevantBuffer = new ComputeBuffer(
-            points.Length, sizeof(int), ComputeBufferType.Append);
-        ComputeBuffer irrelevantBuffer = new ComputeBuffer(
-            points.Length, sizeof(int), ComputeBufferType.Append);
-        ComputeBuffer relevantCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
-        ComputeBuffer irrelevantCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
-
-        relevantBuffer.SetCounterValue(0);
-        irrelevantBuffer.SetCounterValue(0);
-
-        surfaceLevelShader.SetBuffer("relevant", relevantBuffer);
-        surfaceLevelShader.SetBuffer("irrelevant", irrelevantBuffer);
-        surfaceLevelShader.SetBuffer("points", outputPoints);
-
-        surfaceLevelShader.Dispatch(
-            constraint.scale.x * TerrainChunk.ChunkSize.x / 5,
-            constraint.scale.y * TerrainChunk.ChunkSize.y / 5,
-            constraint.scale.z * TerrainChunk.ChunkSize.z / 5,
-            surfaceLevelShaderProperties);
-
-        ComputeBuffer.CopyCount(relevantBuffer, relevantCountBuffer, 0);
-        int[] relevantCount = new int[1] { 0 };
-        relevantCountBuffer.GetData(relevantCount);
-        ComputeBuffer.CopyCount(irrelevantBuffer, irrelevantCountBuffer, 0);
-        int[] irrelevantCount = new int[1] { 0 };
-        irrelevantCountBuffer.GetData(irrelevantCount);
-        outputPoints.GetData(points);
-
-        outputPoints.Release();
-        relevantBuffer.Release();
-        relevantCountBuffer.Release();
-        irrelevantBuffer.Release();
-        irrelevantCountBuffer.Release();
-
-        bool altered = ApplyAlterations();
-        return (relevantCount[0] != 0 && irrelevantCount[0] != points.Length) || altered;
-    }
-
-    private bool ApplyAlterations()
+    public bool ApplyAlterations()
     {
         Dictionary<Vector3, float> alterations = TerrainChunkAlterationManager.alterations[index];
         if (alterations.Count == 0)
@@ -191,31 +93,15 @@ class TerrainChunkMeshGenerator
 
     }
 
-    private void GenerateTriangles(ComputeShaderProperty[] marchingCubesShaderProperties)
+    private void GenerateTriangles()
     {
-        ComputeBuffer triangleBuffer = new ComputeBuffer(
-            constraint.GetVolume(), Triangle.StructSize, ComputeBufferType.Append);
-        triangleBuffer.SetCounterValue(0);
-        ComputeBuffer triangleCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
-        ComputeBuffer inputPoints = new ComputeBuffer(points.Length, Point.StructSize);
-        inputPoints.SetData(points);
-
-        marchingCubesShader.SetBuffer("triangles", triangleBuffer);
-        marchingCubesShader.SetBuffer("points", inputPoints);
-
-        marchingCubesShader.Dispatch(constraint.scale.x, constraint.scale.y, constraint.scale.z, marchingCubesShaderProperties);
-
-        ComputeBuffer.CopyCount(triangleBuffer, triangleCountBuffer, 0);
-        int[] triangleCount = new int[1] { 0 };
-        triangleCountBuffer.GetData(triangleCount);
-        triangles = new Triangle[triangleCount[0]];
-        triangleBuffer.GetData(triangles);
-        triangleBuffer.Release();
-        triangleCountBuffer.Release();
-        inputPoints.Release();
+        marchingCubesShader.SetBuffers();
+        marchingCubesShader.Dispatch();
+        marchingCubesShader.GetData();
+        marchingCubesShader.Release();
     }
 
-    private void CreateMesh()
+    public void CreateMesh()
     {
         mesh.Clear();
         List<Vector3> meshVertices = new List<Vector3>();

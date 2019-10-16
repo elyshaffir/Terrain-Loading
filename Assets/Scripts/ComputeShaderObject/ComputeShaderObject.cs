@@ -1,31 +1,54 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace Assets.Scripts.ComputeShaderObject
 {
-    public class ComputeShaderObject
+    public abstract class ComputeShaderObject
     {
-        public readonly ComputeShader shader;
-
+        private readonly ComputeShader shader;
         private readonly int shaderKernel;
+        private readonly List<ComputeBuffer> usedBuffers;
 
-        public ComputeShaderObject(ComputeShader shader, int shaderKernel)
+        protected ComputeShaderObject(ComputeShader shader, int shaderKernel)
         {
             this.shader = shader;
+            usedBuffers = new List<ComputeBuffer>();
             this.shaderKernel = shaderKernel;
         }
 
-        public void SetBuffer(string name, ComputeBuffer buffer)
+        protected abstract ComputeShaderProperty[] GetProperties();
+        public abstract void SetBuffers();
+
+        protected void AddBuffer(ComputeBuffer buffer)
         {
-            shader.SetBuffer(shaderKernel, name, buffer);
+            usedBuffers.Add(buffer);
         }
 
-        public void Dispatch(int threadGroupsX, int threadGroupsY, int threadGroupsZ, ComputeShaderProperty[] properties)
+        protected void SetBuffer(string name, ComputeBuffer buffer)
+        {
+            shader.SetBuffer(shaderKernel, name, buffer);
+            AddBuffer(buffer);
+        }
+
+        public abstract void Dispatch();
+
+        protected void Dispatch(int threadGroupsX, int threadGroupsY, int threadGroupsZ, ComputeShaderProperty[] properties)
         {
             foreach (ComputeShaderProperty property in properties)
             {
                 property.SetProperty(shader);
             }
             shader.Dispatch(shaderKernel, threadGroupsX, threadGroupsY, threadGroupsZ);
+        }
+
+        public abstract void GetData();
+
+        public void Release()
+        {
+            foreach (ComputeBuffer usedBuffer in usedBuffers)
+            {
+                usedBuffer.Release();
+            }
         }
     }
 }

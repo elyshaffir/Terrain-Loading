@@ -406,7 +406,7 @@ MonoBehaviour:
   enableMovement: 1
   movementSpeed: 10
   boostedSpeed: 50
-  enableSpeedAcceleration: 1
+  enableSpeedAcceleration: 0
   speedAccelerationFactor: 1.5
   initPositonButton: 114
 --- !u!1 &1158889825
@@ -454,8 +454,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   loadingGroupObject: {fileID: 1375316465}
-  maxRange: 100
-  alteringPower: 1
 --- !u!1001 &1263894344
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -536,7 +534,7 @@ PrefabInstance:
     - target: {fileID: 9184674055320317507, guid: 44f55ef531714d24a9285db42173a7e5,
         type: 3}
       propertyPath: renderDistance
-      value: 4
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 44f55ef531714d24a9285db42173a7e5, type: 3}
