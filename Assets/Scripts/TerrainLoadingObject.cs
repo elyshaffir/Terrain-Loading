@@ -46,13 +46,14 @@ public class TerrainLoadingObject : MonoBehaviour
 
     void Update()
     {
-        TerrainChunkLoadingManager.Update();
+        TerrainChunkLoadingManager.PhaseOne();
         TerrainChunkIndex newTerrainChunkIndex = TerrainChunkIndex.FromVector(loadingObject.transform.position);
         if (!newTerrainChunkIndex.Equals(currentTerrainChunkIndex))
         {
             ManageChunks();
             currentTerrainChunkIndex = newTerrainChunkIndex;
         }
+        TerrainChunkLoadingManager.PhaseTwo();
     }
 
     private void ManageChunks()
@@ -86,7 +87,8 @@ public class TerrainLoadingObject : MonoBehaviour
             if (!indicesToUpdate.Contains(loadedChunk.index))
             {
                 loadedChunk.Destroy();
-                loadedChunks.Remove(loadedChunk);
+                loadedChunks.RemoveAt(i);
+                TerrainChunkLoadingManager.chunksToLoad.Remove(loadedChunk);
             }
         }
     }
