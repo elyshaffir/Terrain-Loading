@@ -4,9 +4,12 @@ using UnityEngine;
 
 public class TerrainChunkIndex
 {
-    private readonly int x;
-    private readonly int y;
-    private readonly int z;
+
+    public static readonly TerrainChunkIndex zero = new TerrainChunkIndex(0, 0, 0);
+
+    public readonly int x;
+    public readonly int y;
+    public readonly int z;
 
     public TerrainChunkIndex(int x, int y, int z)
     {
@@ -17,11 +20,12 @@ public class TerrainChunkIndex
 
     public static List<TerrainChunkIndex> GetChunksToUpdate(Vector3 loadingChunkPosition, int renderDistance)
     {
+        int renderDistanceY = GetRenderDistanceY(renderDistance);
         TerrainChunkIndex loadingObjectIndex = FromVector(loadingChunkPosition);
         List<TerrainChunkIndex> chunksToUpdate = new List<TerrainChunkIndex>();
         for (int x = loadingObjectIndex.x + renderDistance - 1; x > loadingObjectIndex.x - renderDistance - 1; x--)
         {
-            for (int y = loadingObjectIndex.y + renderDistance - 1; y > loadingObjectIndex.y - renderDistance - 1; y--)
+            for (int y = loadingObjectIndex.y + renderDistanceY - 1; y > loadingObjectIndex.y - renderDistanceY - 1; y--)
             {
                 for (int z = loadingObjectIndex.z + renderDistance - 1; z > loadingObjectIndex.z - renderDistance - 1; z--)
                 {
@@ -32,31 +36,9 @@ public class TerrainChunkIndex
         return chunksToUpdate;
     }
 
-    public static List<TerrainChunkIndex> GetChunksToLoad(Vector3 loadingChunkPosition,
-        List<TerrainChunkIndex> chunksToLoad,
-        List<TerrainChunk> loadedChunks)
+    public static int GetRenderDistanceY(int renderDistance)
     {
-        List<TerrainChunkIndex> loadedIndices = new List<TerrainChunkIndex>();
-        foreach (TerrainChunk loadedChunk in loadedChunks)
-        {
-            loadedIndices.Add(loadedChunk.index);
-        }
-        List<TerrainChunkIndex> indicesToRemove = new List<TerrainChunkIndex>();
-        foreach (TerrainChunkIndex loadedIndex in loadedIndices)
-        {
-            foreach (TerrainChunkIndex indexToLoad in chunksToLoad)
-            {
-                if (indexToLoad.Equals(loadedIndex))
-                {
-                    indicesToRemove.Add(indexToLoad);
-                }
-            }
-        }
-        foreach (TerrainChunkIndex indexToRemove in indicesToRemove)
-        {
-            chunksToLoad.Remove(indexToRemove);
-        }
-        return chunksToLoad;
+        return renderDistance / 2;
     }
 
     public void GetAdjacentToManipulate(Vector3 onEdges, HashSet<TerrainChunkIndex> additionalIndices)
@@ -105,6 +87,42 @@ public class TerrainChunkIndex
             y * TerrainChunk.ChunkSize.y,
             z * TerrainChunk.ChunkSize.z
         );
+    }
+
+    public bool InRange(TerrainChunkIndex loadingObjectIndex, int renderDistance)
+    {
+        int renderDistanceY = GetRenderDistanceY(renderDistance);
+        return x <= loadingObjectIndex.x + renderDistance - 1 &&
+            x > loadingObjectIndex.x - renderDistance - 1 &&
+            y <= loadingObjectIndex.y + renderDistanceY - 1 &&
+            y > loadingObjectIndex.y - renderDistanceY - 1 &&
+            z <= loadingObjectIndex.z + renderDistance - 1 &&
+            z > loadingObjectIndex.z - renderDistance - 1;
+    }
+
+    public TerrainChunkIndex Abs()
+    {
+        return new TerrainChunkIndex(Math.Abs(x), Math.Abs(y), Math.Abs(z));
+    }
+
+    public TerrainChunkIndex Sign()
+    {
+        return new TerrainChunkIndex(Math.Sign(x), Math.Sign(y), Math.Sign(z));
+    }
+
+    public static TerrainChunkIndex operator +(TerrainChunkIndex index1, TerrainChunkIndex index2)
+    {
+        return new TerrainChunkIndex(index1.x + index2.x, index1.y + index2.y, index1.z + index2.z);
+    }
+
+    public static TerrainChunkIndex operator -(TerrainChunkIndex index1, TerrainChunkIndex index2)
+    {
+        return new TerrainChunkIndex(index1.x - index2.x, index1.y - index2.y, index1.z - index2.z);
+    }
+
+    public static TerrainChunkIndex operator *(TerrainChunkIndex index1, TerrainChunkIndex index2)
+    {
+        return new TerrainChunkIndex(index1.x * index2.x, index1.y * index2.y, index1.z * index2.z);
     }
 
     public bool Equals(TerrainChunkIndex index)

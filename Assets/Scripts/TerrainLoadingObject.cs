@@ -1,19 +1,11 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using static TerrainChunkIndex;
 
 public class TerrainLoadingObject : MonoBehaviour
 {
     /*
-        NEW LOADING SYSTEM
-        ------------------
-
-        - Preformence issues rise when more than one chunk is being generated
-        - Look into a static class in which all of the compute-shader-dispatching will happen, that will allow working on multiple chunks at once
-        -- And will solve the problem where you can't do many things from a separate thread / job.
-        --- This will be probably implemented via a static Queue and an UpdateJobs() method being called every frame.
-     */
-    /*
+    - Altering terrain on a REALLY large area is somewhat slow
+    - Make chunk size more customizable
     - Organize the code / documents (imports, namespaces etc.) to prepare for importing to other projects.    
      */
     public GameObject loadingObject;
@@ -33,6 +25,8 @@ public class TerrainLoadingObject : MonoBehaviour
     void Start()
     {
         InitializeTerrain();
+        InitializeChunks();
+        currentTerrainChunkIndex = TerrainChunkIndex.FromVector(loadingObject.transform.position);
     }
 
     private void InitializeTerrain()
@@ -44,52 +38,69 @@ public class TerrainLoadingObject : MonoBehaviour
         TerrainChunkAlterationManager.Init();
     }
 
-    void Update()
-    {
-        TerrainChunkLoadingManager.PhaseOne();
-        TerrainChunkIndex newTerrainChunkIndex = TerrainChunkIndex.FromVector(loadingObject.transform.position);
-        if (!newTerrainChunkIndex.Equals(currentTerrainChunkIndex))
-        {
-            ManageChunks();
-            currentTerrainChunkIndex = newTerrainChunkIndex;
-        }
-        TerrainChunkLoadingManager.PhaseTwo();
-    }
-
-    private void ManageChunks()
+    private void InitializeChunks()
     {
         List<TerrainChunkIndex> indicesToUpdate = TerrainChunkIndex.GetChunksToUpdate(
                     loadingObject.transform.position,
                     renderDistance);
-        RemoveChunks(new HashSet<TerrainChunkIndex>(indicesToUpdate, new TerrainChunkIndexComparer()));
-        List<TerrainChunkIndex> indicesToLoad = TerrainChunkIndex.GetChunksToLoad(
-            loadingObject.transform.position,
-            indicesToUpdate,
-            loadedChunks);
-        LoadChunks(indicesToLoad);
+        LoadChunks(indicesToUpdate);
+    }
+
+    void Update()
+    {
+        TerrainChunkLoadingManager.PhaseOne();
+        TerrainChunkIndex newTerrainChunkIndex = TerrainChunkIndex.FromVector(loadingObject.transform.position);
+        TerrainChunkIndex distance = newTerrainChunkIndex - currentTerrainChunkIndex;
+        if (!distance.Equals(TerrainChunkIndex.zero))
+        {
+            currentTerrainChunkIndex = newTerrainChunkIndex;
+            ManageChunks(distance);
+        }
+        TerrainChunkLoadingManager.PhaseTwo();
+    }
+
+    private void ManageChunks(TerrainChunkIndex distance)
+    {
+        // If the chunk is out of range, invert it around currentTerrainChunkIndex        
+        int c = loadedChunks.Count;
+        for (int i = 0; i < c; i++)
+        {
+            TerrainChunk loadedChunk = loadedChunks[i];
+            if (!loadedChunk.index.InRange(currentTerrainChunkIndex, renderDistance))
+            {
+                loadedChunk.Destroy();
+                TerrainChunkLoadingManager.chunksToLoad.Remove(loadedChunk);
+
+                TerrainChunkIndex initialTerrainChunkIndex = currentTerrainChunkIndex - distance;
+                TerrainChunkIndex initialGridPos = loadedChunk.index - initialTerrainChunkIndex;
+                TerrainChunkIndex axisToInvert = distance.Sign().Abs(); // if the value is not 0, need to invert on that axis
+                TerrainChunkIndex gridPosInverted = initialGridPos * new TerrainChunkIndex(
+                    (axisToInvert.x == 0) ? 1 : -1,
+                    (axisToInvert.y == 0) ? 1 : -1,
+                    (axisToInvert.z == 0) ? 1 : -1
+                );
+                gridPosInverted -= axisToInvert;
+                TerrainChunkIndex newIndex = currentTerrainChunkIndex + gridPosInverted;
+                TerrainChunk newChunk = new TerrainChunk(newIndex);
+
+                loadedChunks[i] = newChunk;
+                TerrainChunkLoadingManager.chunksToLoad.Add(newChunk); // Change to Queue                
+            }
+        }
     }
 
     private void LoadChunks(List<TerrainChunkIndex> indicesToLoad)
     {
         foreach (TerrainChunkIndex indexToLoad in indicesToLoad)
         {
-            TerrainChunk chunkToAdd = new TerrainChunk(indexToLoad);
-            TerrainChunkLoadingManager.chunksToLoad.Add(chunkToAdd);
-            loadedChunks.Add(chunkToAdd);
+            LoadChunk(indexToLoad);
         }
     }
 
-    private void RemoveChunks(HashSet<TerrainChunkIndex> indicesToUpdate)
+    private void LoadChunk(TerrainChunkIndex indexToLoad)
     {
-        for (int i = 0; i < loadedChunks.Count; i++)
-        {
-            TerrainChunk loadedChunk = loadedChunks[i];
-            if (!indicesToUpdate.Contains(loadedChunk.index))
-            {
-                loadedChunk.Destroy();
-                loadedChunks.RemoveAt(i);
-                TerrainChunkLoadingManager.chunksToLoad.Remove(loadedChunk);
-            }
-        }
+        TerrainChunk chunkToAdd = new TerrainChunk(indexToLoad);
+        TerrainChunkLoadingManager.chunksToLoad.Add(chunkToAdd); // Change to Queue
+        loadedChunks.Add(chunkToAdd);
     }
 }
