@@ -3,6 +3,7 @@
 #include "Imported/Noise.compute"
 
 static const int numThreadsSurfaceLevel = 5;
+
 struct Point { // Appears twice since importing in HLSL is a headache
 	float3 position;	
 	float surfaceLevel;

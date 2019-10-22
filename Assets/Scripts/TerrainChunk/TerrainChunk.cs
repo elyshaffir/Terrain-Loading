@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class TerrainChunk
 {
-    public static Vector3Int ChunkSize = new Vector3Int(10, 10, 10);
+    public static Vector3Int ChunkSize = new Vector3Int(50, 15, 50);
     public static GameObject prefab;
     public static Transform parent;
 

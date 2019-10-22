@@ -1,10 +1,19 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using static TerrainChunkIndex;
 
 public class TerrainManipulatingObject : MonoBehaviour
 {
+    /*
+    - Altering terrain on a REALLY large area is somewhat slow    
+
+    NEW ALTERATION ALGORITM
+    -----------------------
+    1. Predict the positions of the to-be-altered points using the sphere's position, radius and the chunk-resolution (for now it is always one)    
+    2. As the prediction process is happenning, create the alteration dictionary using the points and their corresponding chunks
+        - a point's chunk can be determined by: Mathf.CeilToInt(position / ChunkSize) or something along those lines.
+    3. Add the alteration dictionary to TerrainAlterationManager.
+     */
     public GameObject loadingGroupObject;
 
     private const float RESIZE_SPEED = 55f;

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Assets.Scripts.ComputeShaderObject;
 using UnityEngine;
 using static TerrainChunkMeshGenerator;
@@ -30,7 +29,7 @@ public class SurfaceLevelShader : ComputeShaderObject
         return new ComputeShaderProperty[] {
             new ComputeShaderIntProperty("numPointsX", generator.constraint.scale.x * TerrainChunk.ChunkSize.x),
             new ComputeShaderIntProperty("numPointsY", generator.constraint.scale.y * TerrainChunk.ChunkSize.y),
-            new ComputeShaderIntProperty("numPointsZ", generator.constraint.scale.z *TerrainChunk.ChunkSize.z),
+            new ComputeShaderIntProperty("numPointsZ", generator.constraint.scale.z * TerrainChunk.ChunkSize.z),
             new ComputeShaderFloatProperty("noiseScale", .94f), // Scale this down and scale the world up to create an effect of more points
             new ComputeShaderIntProperty("octaves", 6),
             new ComputeShaderVector3Property("offset", generator.constraint.position),

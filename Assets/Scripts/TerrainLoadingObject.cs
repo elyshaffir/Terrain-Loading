@@ -3,9 +3,7 @@ using UnityEngine;
 
 public class TerrainLoadingObject : MonoBehaviour
 {
-    /*
-    - Altering terrain on a REALLY large area is somewhat slow
-    - Make chunk size more customizable
+    /*    
     - Organize the code / documents (imports, namespaces etc.) to prepare for importing to other projects.    
      */
     public GameObject loadingObject;
@@ -48,7 +46,7 @@ public class TerrainLoadingObject : MonoBehaviour
 
     void Update()
     {
-        TerrainChunkLoadingManager.PhaseOne();
+        TerrainChunkLoadingManager.PhaseOne(renderDistance);
         TerrainChunkIndex newTerrainChunkIndex = TerrainChunkIndex.FromVector(loadingObject.transform.position);
         TerrainChunkIndex distance = newTerrainChunkIndex - currentTerrainChunkIndex;
         if (!distance.Equals(TerrainChunkIndex.zero))

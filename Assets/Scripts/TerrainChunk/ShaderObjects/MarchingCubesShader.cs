@@ -45,10 +45,12 @@ public class MarchingCubesShader : ComputeShaderObject
 
     public override void Dispatch()
     {
+        // Must make sure that the compute shader and this are coordinated with the amount of threads used,
+        // as well as make sure that the final result is a natural number (floats will be rounded down and will not work properly)
         Dispatch(
-            generator.constraint.scale.x,
-            generator.constraint.scale.y,
-            generator.constraint.scale.z,
+            generator.constraint.scale.x * (TerrainChunk.ChunkSize.x - 1) / 7,
+            generator.constraint.scale.y * (TerrainChunk.ChunkSize.y - 1) / 7,
+            generator.constraint.scale.z * (TerrainChunk.ChunkSize.z - 1) / 7,
             GetProperties());
     }
 

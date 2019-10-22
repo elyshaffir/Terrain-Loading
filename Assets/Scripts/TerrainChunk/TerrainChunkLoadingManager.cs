@@ -1,19 +1,20 @@
+using System;
 using System.Collections.Generic;
 
 public class TerrainChunkLoadingManager
 {
     public static List<TerrainChunk> chunksToLoad;
     private static List<TerrainChunk> relevantChunks;
-    private static int chunksPerFrame = 100;
 
     public static void Init()
     {
         chunksToLoad = new List<TerrainChunk>();
     }
 
-    public static void PhaseOne()
+    public static void PhaseOne(int renderDistance)
     {
         List<TerrainChunk> currentChunks = new List<TerrainChunk>();
+        int chunksPerFrame = CalculateChunksPerFrame(renderDistance);
         for (int i = 0, c = 0; i < chunksToLoad.Count && c < chunksPerFrame; i++, c++)
         {
             TerrainChunk chunkToLoad = chunksToLoad[i];
@@ -33,6 +34,11 @@ public class TerrainChunkLoadingManager
         {
             relevantChunk.PhaseThree();
         }
+    }
+
+    private static int CalculateChunksPerFrame(int renderDistance)
+    {
+        return (int)Math.Ceiling(TerrainChunk.ChunkSize.magnitude / renderDistance * TerrainChunkIndex.GetRenderDistanceY(renderDistance) * renderDistance);
     }
 
     public static void PhaseTwo()

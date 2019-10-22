@@ -1,7 +1,7 @@
 ﻿#pragma kernel MarchCubes
 #include "Imported/MarchTables.compute"
 
-static const int numThreadsMarchCubes = 9; // The chunk size - 1
+static const int numThreadsMarchCubes = 7;
 
 struct Point { // Appears twice since importing in HLSL is a headache
 	float3 position;	
