@@ -21,6 +21,26 @@ public class TerrainChunkAlterationManager
         catch (ArgumentException) { }
     }
 
+    public static HashSet<TerrainChunkIndex> AddAlterations(Dictionary<Vector3, float> newAlterations)
+    {
+        HashSet<TerrainChunkIndex> alteredChunks = new HashSet<TerrainChunkIndex>(new TerrainChunkIndexComparer());
+        foreach (KeyValuePair<Vector3, float> alteration in newAlterations)
+        {
+            TerrainChunkIndex currentChunk = TerrainChunkIndex.FromVector(alteration.Key);
+            alteredChunks.Add(currentChunk);
+            Dictionary<Vector3, float> currentAlterations = alterations[currentChunk];
+            try
+            {
+                currentAlterations.Add(alteration.Key, alteration.Value);
+            }
+            catch (ArgumentException)
+            {
+                currentAlterations[alteration.Key] += alteration.Value;
+            }
+        }
+        return alteredChunks;
+    }
+
     public static void AddAlterations(TerrainChunkIndex index, Dictionary<Vector3, float> newAlterations)
     {
         Dictionary<Vector3, float> currentAlterations = alterations[index];

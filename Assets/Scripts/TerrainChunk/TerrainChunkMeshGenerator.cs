@@ -50,7 +50,7 @@ public class TerrainChunkMeshGenerator
         mesh = new Mesh();
     }
 
-    public Dictionary<Vector3, float> Alter(Vector3 spherePosition, float sphereRadius, float power, HashSet<TerrainChunkIndex> additionalIndices) // Move altering to multiple threads possibly
+    public Dictionary<Vector3, float> Alter(Vector3 spherePosition, float sphereRadius, float power, HashSet<TerrainChunkIndex> additionalIndices, TerrainChunk currentChunk)
     {
         Dictionary<Vector3, float> alterations = new Dictionary<Vector3, float>(new TerrainChunkAlterationManager.Vector3Comparer());
         for (int i = 0; i < points.Length; i++)
@@ -63,14 +63,14 @@ public class TerrainChunkMeshGenerator
                 index.GetAdjacentToManipulate(points[i].onEdges, additionalIndices);
             }
         }
-        GenerateMeshWithPoints();
+        TerrainChunkLoadingManager.chunksWithPoints.Add(currentChunk);
         return alterations;
     }
 
-    private void GenerateMeshWithPoints()
+    public void Alter(TerrainChunk currentChunk)
     {
-        GenerateTriangles();
-        CreateMesh();
+        ApplyAlterations();
+        TerrainChunkLoadingManager.chunksWithPoints.Add(currentChunk);
     }
 
     public bool ApplyAlterations()
@@ -84,21 +84,23 @@ public class TerrainChunkMeshGenerator
         for (int i = 0; i < points.Length; i++)
         {
             pointIndices.Add(points[i].position, i);
+            if (points[i].position.x == 1 || points[i].position.y == 1 || points[i].position.z == 1)
+            {
+                Debug.Log("t");
+            }
         }
         foreach (KeyValuePair<Vector3, float> alteration in alterations)
         {
-            points[pointIndices[alteration.Key]].surfaceLevel = alteration.Value;
+            try
+            {
+                points[pointIndices[alteration.Key]].surfaceLevel = alteration.Value;
+            }
+            catch (KeyNotFoundException)
+            {
+            }
         }
         return true;
 
-    }
-
-    private void GenerateTriangles()
-    {
-        marchingCubesShader.SetBuffers();
-        marchingCubesShader.Dispatch();
-        marchingCubesShader.GetData();
-        marchingCubesShader.Release();
     }
 
     public void CreateMesh()

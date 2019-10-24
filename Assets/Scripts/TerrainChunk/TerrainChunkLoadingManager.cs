@@ -4,11 +4,12 @@ using System.Collections.Generic;
 public class TerrainChunkLoadingManager
 {
     public static List<TerrainChunk> chunksToLoad;
-    private static List<TerrainChunk> relevantChunks;
+    public static List<TerrainChunk> chunksWithPoints;
 
     public static void Init()
     {
         chunksToLoad = new List<TerrainChunk>();
+        chunksWithPoints = new List<TerrainChunk>();
     }
 
     public static void PhaseOne(int renderDistance)
@@ -22,15 +23,14 @@ public class TerrainChunkLoadingManager
             currentChunks.Add(chunkToLoad);
             chunksToLoad.RemoveAt(i);
         }
-        relevantChunks = new List<TerrainChunk>();
         foreach (TerrainChunk chunkToLoad in currentChunks)
         {
             if (chunkToLoad.PhaseTwo())
             {
-                relevantChunks.Add(chunkToLoad);
+                chunksWithPoints.Add(chunkToLoad);
             }
         }
-        foreach (TerrainChunk relevantChunk in relevantChunks)
+        foreach (TerrainChunk relevantChunk in chunksWithPoints)
         {
             relevantChunk.PhaseThree();
         }
@@ -43,9 +43,10 @@ public class TerrainChunkLoadingManager
 
     public static void PhaseTwo()
     {
-        foreach (TerrainChunk relevantChunk in relevantChunks)
+        foreach (TerrainChunk relevantChunk in chunksWithPoints)
         {
             relevantChunk.PhaseFour();
         }
+        chunksWithPoints.Clear();
     }
 }

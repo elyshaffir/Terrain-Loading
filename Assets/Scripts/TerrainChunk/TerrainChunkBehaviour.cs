@@ -9,4 +9,9 @@ public class TerrainChunkBehaviour : MonoBehaviour
     {
         chunk.Alter(spherePosition, sphereRadius, power, additionalIndices);
     }
+
+    public void Alter()
+    {
+        chunk.Alter();
+    }
 }
