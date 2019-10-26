@@ -36,7 +36,7 @@ namespace LowPolyTerrain.MeshGeneration
             mesh = new Mesh();
         }
 
-        public Dictionary<Vector3, float> Alter(Vector3 spherePosition, float sphereRadius, float power, HashSet<TerrainChunkIndex> additionalIndices)
+        public Dictionary<Vector3, float> Alter(Vector3 spherePosition, float sphereRadius, float power, HashSet<TerrainChunkIndex> additionalIndices, TerrainChunk chunk)
         {
             Dictionary<Vector3, float> alterations = new Dictionary<Vector3, float>(new Vector3Comparer());
             for (int i = 0; i < points.Length; i++)
@@ -49,14 +49,8 @@ namespace LowPolyTerrain.MeshGeneration
                     index.GetAdjacentToManipulate(points[i].onEdges, additionalIndices);
                 }
             }
-            GenerateMeshWithPoints();
+            TerrainChunkLoadingManager.chunksWithPoints.Add(chunk);
             return alterations;
-        }
-
-        void GenerateMeshWithPoints()
-        {
-            GenerateTriangles();
-            CreateMesh();
         }
 
         public bool ApplyAlterations()
@@ -77,14 +71,6 @@ namespace LowPolyTerrain.MeshGeneration
             }
             return true;
 
-        }
-
-        void GenerateTriangles()
-        {
-            marchingCubesShader.SetBuffers();
-            marchingCubesShader.Dispatch();
-            marchingCubesShader.GetData();
-            marchingCubesShader.Release();
         }
 
         public void CreateMesh()

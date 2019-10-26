@@ -54,7 +54,7 @@ namespace LowPolyTerrain.Chunk
 
         public void Alter(Vector3 spherePosition, float sphereRadius, float power, HashSet<TerrainChunkIndex> additionalIndices)
         {
-            TerrainChunkAlterationManager.AddAlterations(index, meshGenerator.Alter(spherePosition, sphereRadius, power, additionalIndices));
+            TerrainChunkAlterationManager.AddAlterations(index, meshGenerator.Alter(spherePosition, sphereRadius, power, additionalIndices, this));
             terrainObject.GetComponent<MeshCollider>().sharedMesh = meshGenerator.mesh;
         }
 

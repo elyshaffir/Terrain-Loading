@@ -6,12 +6,12 @@ namespace LowPolyTerrain.Chunk
     class TerrainChunkLoadingManager
     {
         public static List<TerrainChunk> chunksToLoad;
-
-        static List<TerrainChunk> relevantChunks; // Remember to change GenerateWithPoints() to use this
+        public static List<TerrainChunk> chunksWithPoints;
 
         public static void Init()
         {
             chunksToLoad = new List<TerrainChunk>();
+            chunksWithPoints = new List<TerrainChunk>();
         }
 
         public static void PhaseOne(int renderDistance)
@@ -25,15 +25,14 @@ namespace LowPolyTerrain.Chunk
                 currentChunks.Add(chunkToLoad);
                 chunksToLoad.RemoveAt(i);
             }
-            relevantChunks = new List<TerrainChunk>();
             foreach (TerrainChunk chunkToLoad in currentChunks)
             {
                 if (chunkToLoad.PhaseTwo())
                 {
-                    relevantChunks.Add(chunkToLoad);
+                    chunksWithPoints.Add(chunkToLoad);
                 }
             }
-            foreach (TerrainChunk relevantChunk in relevantChunks)
+            foreach (TerrainChunk relevantChunk in chunksWithPoints)
             {
                 relevantChunk.PhaseThree();
             }
@@ -46,10 +45,11 @@ namespace LowPolyTerrain.Chunk
 
         public static void PhaseTwo()
         {
-            foreach (TerrainChunk relevantChunk in relevantChunks)
+            foreach (TerrainChunk relevantChunk in chunksWithPoints)
             {
                 relevantChunk.PhaseFour();
             }
+            chunksWithPoints.Clear();
         }
     }
 }
