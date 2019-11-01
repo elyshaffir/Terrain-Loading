@@ -97,7 +97,7 @@ float3 calculateOnEdges(uint x, uint y, uint z)
 [numthreads(numThreadsSurfaceLevel, numThreadsSurfaceLevel, numThreadsSurfaceLevel)]
 void GenerateSurfaceLevel(uint3 id : SV_DispatchThreadID)
 {
-	if (id.x < numPointsX && id.y < numPointsY && id.z < numPointsZ) {
+	if (id.x < numPointsX && id.y < numPointsY && id.z < numPointsZ) { // Perhaps redundant if (results from GetPointsToAlter suggest it is)
 		float3 pos = float3(id.x, id.y, id.z) + offset + float3(sign(id.x), sign(id.y), sign(id.z));		
 		float generatedNoise = generateNoise(pos);		
 		int index = indexFromCoords(id.x, id.y, id.z);		

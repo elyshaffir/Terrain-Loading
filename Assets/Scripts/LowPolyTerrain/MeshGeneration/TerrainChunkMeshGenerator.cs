@@ -16,13 +16,16 @@ namespace LowPolyTerrain.MeshGeneration
         public SurfaceLevelShader surfaceLevelShader;
         public MarchingCubesShader marchingCubesShader;
 
+        GetPointsToAlterShader getPointsToAlterShader;
+
         TerrainChunkIndex index;
 
-        public static void Init(ComputeShader surfaceLevelGeneratorShader, ComputeShader marchingCubesGeneratorShader)
+        public static void Init(ComputeShader surfaceLevelGeneratorShader, ComputeShader marchingCubesGeneratorShader, ComputeShader getPointsToAlterShader)
         {
             SurfaceLevelShader.surfaceLevelGeneratorShader = surfaceLevelGeneratorShader;
             SurfaceLevelShader.seed = Random.Range(-1000000f, 1000000f);
             MarchingCubesShader.marchingCubesGeneratorShader = marchingCubesGeneratorShader;
+            GetPointsToAlterShader.getPointsToAlterShader = getPointsToAlterShader;
         }
 
         public TerrainChunkMeshGenerator(TerrainChunkIndex index)
@@ -32,6 +35,7 @@ namespace LowPolyTerrain.MeshGeneration
 
             surfaceLevelShader = new SurfaceLevelShader(this);
             marchingCubesShader = new MarchingCubesShader(this);
+            getPointsToAlterShader = new GetPointsToAlterShader(this);
 
             mesh = new Mesh();
         }
@@ -39,15 +43,12 @@ namespace LowPolyTerrain.MeshGeneration
         public Dictionary<Vector3, float> Alter(Vector3 spherePosition, float sphereRadius, float power, HashSet<TerrainChunkIndex> additionalIndices, TerrainChunk chunk)
         {
             Dictionary<Vector3, float> alterations = new Dictionary<Vector3, float>(new Vector3Comparer());
-            for (int i = 0; i < points.Length; i++)
+            int[] pointsToAlter = getPointsToAlterShader.Execute(sphereRadius, spherePosition);
+            foreach (int indexToAlter in pointsToAlter)
             {
-                if (Vector3.Distance(points[i].position, spherePosition) <= sphereRadius)
-                {
-                    points[i].surfaceLevel += power;
-                    alterations[points[i].position] = points[i].surfaceLevel;
-
-                    index.GetAdjacentToManipulate(points[i].onEdges, additionalIndices);
-                }
+                points[indexToAlter].surfaceLevel += power;
+                alterations[points[indexToAlter].position] = points[indexToAlter].surfaceLevel;
+                index.GetAdjacentToManipulate(points[indexToAlter].onEdges, additionalIndices);
             }
             TerrainChunkLoadingManager.chunksWithPoints.Add(chunk);
             return alterations;

@@ -1,0 +1,38 @@
+#pragma kernel GetPointsToAlter
+
+static const int numThreadsGetPointsToAlter = 5;
+/*
+    - Have a list of cube triangle amounts coming out of MarchingCubes to be used later for alterations
+    - Organize shader code and documents
+*/
+struct Point
+{
+    float3 position;
+    float surfaceLevel;
+    float3 onEdges;
+};
+
+RWStructuredBuffer<Point> points;
+AppendStructuredBuffer<int> pointsToAlter;
+
+int numPointsX;
+int numPointsY;
+int numPointsZ;
+
+float sphereRadius;
+float3 spherePosition;
+
+int indexFromCoords(uint x, uint y, uint z)
+{
+    return z * numPointsX * numPointsY + y * numPointsX + x;
+}
+
+[numthreads(numThreadsGetPointsToAlter, numThreadsGetPointsToAlter, numThreadsGetPointsToAlter)]
+void GetPointsToAlter(uint3 id : SV_DispatchThreadID)
+{
+    int index = indexFromCoords(id.x, id.y, id.z);    
+    if (distance(spherePosition, points[index].position) <= sphereRadius)
+    {
+        pointsToAlter.Append(index);               
+    }    
+}

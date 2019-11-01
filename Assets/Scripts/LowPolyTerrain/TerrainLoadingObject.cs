@@ -12,6 +12,7 @@ namespace LowPolyTerrain
         public GameObject terrainChunkPrefab;
         public ComputeShader surfaceLevelGeneratorShader;
         public ComputeShader marchingCubesGeneratorShader;
+        public ComputeShader getPointsToAlterShader;
         public int renderDistance;
 
         List<TerrainChunk> loadedChunks;
@@ -33,7 +34,7 @@ namespace LowPolyTerrain
         {
             TerrainChunk.prefab = terrainChunkPrefab;
             TerrainChunk.parent = transform;
-            TerrainChunkMeshGenerator.Init(surfaceLevelGeneratorShader, marchingCubesGeneratorShader);
+            TerrainChunkMeshGenerator.Init(surfaceLevelGeneratorShader, marchingCubesGeneratorShader, getPointsToAlterShader);
             TerrainChunkLoadingManager.Init();
             TerrainChunkAlterationManager.Init();
         }

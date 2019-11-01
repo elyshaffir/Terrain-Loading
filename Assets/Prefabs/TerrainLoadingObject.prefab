@@ -50,4 +50,6 @@ MonoBehaviour:
     type: 3}
   marchingCubesGeneratorShader: {fileID: 7200000, guid: acaef50cc884c5d448f8998d3973d79e,
     type: 3}
+  getPointsToAlterShader: {fileID: 7200000, guid: 0561e0e439404dc47aa9202471df6827,
+    type: 3}
   renderDistance: 2
