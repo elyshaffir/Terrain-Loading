@@ -1,3 +1,4 @@
+using System;
 using ComputeShading;
 using LowPolyTerrain.Chunk;
 using LowPolyTerrain.MeshGeneration;
@@ -20,6 +21,12 @@ namespace LowPolyTerrain.ShaderObjects
         ComputeBuffer relevantCountBuffer;
         ComputeBuffer irrelevantCountBuffer;
 
+        ///
+        ComputeBuffer relevantCubeCornersBuffer;
+        uint[] relevantCubeCorners;
+        ComputeBuffer debugBuffer;
+        ///
+
         bool relevant;
 
         public SurfaceLevelShader(TerrainChunkMeshGenerator generator) :
@@ -32,9 +39,9 @@ namespace LowPolyTerrain.ShaderObjects
         protected override ComputeShaderProperty[] GetProperties()
         {
             return new ComputeShaderProperty[] {
-                new ComputeShaderIntProperty("numPointsX", generator.constraint.scale.x * TerrainChunk.ChunkSize.x),
-                new ComputeShaderIntProperty("numPointsY", generator.constraint.scale.y * TerrainChunk.ChunkSize.y),
-                new ComputeShaderIntProperty("numPointsZ", generator.constraint.scale.z * TerrainChunk.ChunkSize.z),
+                new ComputeShaderIntProperty("numPointsX", generator.constraint.scale.x * TerrainChunk.ChunkSizeInPoints.x),
+                new ComputeShaderIntProperty("numPointsY", generator.constraint.scale.y * TerrainChunk.ChunkSizeInPoints.y),
+                new ComputeShaderIntProperty("numPointsZ", generator.constraint.scale.z * TerrainChunk.ChunkSizeInPoints.z),
                 new ComputeShaderFloatProperty("noiseScale", .94f), // Scale this down and scale the world up to create an effect of more points
                 new ComputeShaderIntProperty("octaves", 6),
                 new ComputeShaderVector3Property("offset", generator.constraint.position),
@@ -47,7 +54,7 @@ namespace LowPolyTerrain.ShaderObjects
                 new ComputeShaderFloatProperty("hardFloor", 1f),
                 new ComputeShaderFloatProperty("hardFloorWeight", 37f),
                 new ComputeShaderFloatProperty("offsetNoise", seed),
-                new ComputeShaderFloatProperty("isoLevel", -3.5f) // Note that it is hard coded            
+                new ComputeShaderFloatProperty("isoLevel", TerrainChunkMeshGenerator.IsoLevel)
             };
         }
 
@@ -70,14 +77,28 @@ namespace LowPolyTerrain.ShaderObjects
             SetBuffer("points", outputPoints);
             AddBuffer(relevantCountBuffer);
             AddBuffer(irrelevantCountBuffer);
+
+            ///
+            relevantCubeCorners = new uint[generator.points.Length];
+            Array.Clear(relevantCubeCorners, 0, relevantCubeCorners.Length);
+            relevantCubeCornersBuffer = new ComputeBuffer(generator.points.Length, sizeof(uint));
+            relevantCubeCornersBuffer.SetData(relevantCubeCorners);
+            SetBuffer("relevantCubeCorners", relevantCubeCornersBuffer);
+
+            float[] debug = new float[10];
+            Array.Clear(debug, 0, debug.Length);
+            debugBuffer = new ComputeBuffer(debug.Length, sizeof(float));
+            debugBuffer.SetData(debug);
+            SetBuffer("debug", debugBuffer);
+            ///
         }
 
         public override void Dispatch()
         {
             Dispatch(
-                generator.constraint.scale.x * TerrainChunk.ChunkSize.x / 5,
-                generator.constraint.scale.y * TerrainChunk.ChunkSize.y / 5,
-                generator.constraint.scale.z * TerrainChunk.ChunkSize.z / 5,
+                generator.constraint.scale.x * TerrainChunk.ChunkSizeInPoints.x / 5,
+                generator.constraint.scale.y * TerrainChunk.ChunkSizeInPoints.y / 5,
+                generator.constraint.scale.z * TerrainChunk.ChunkSizeInPoints.z / 5,
                 GetProperties());
         }
 
@@ -91,6 +112,18 @@ namespace LowPolyTerrain.ShaderObjects
             irrelevantCountBuffer.GetData(irrelevantCount);
             outputPoints.GetData(generator.points);
             relevant = relevantCount[0] != 0 && irrelevantCount[0] != generator.points.Length;
+
+            ///
+            relevantCubeCornersBuffer.GetData(relevantCubeCorners);
+            PrepareRelevantCubesShader prepareRelevantCubesShader = new PrepareRelevantCubesShader(generator);
+            prepareRelevantCubesShader.Execute(relevantCubeCorners);
+            float[] debug = new float[10];
+            debugBuffer.GetData(debug);
+            if (generator.constraint.position.Equals(new Vector3(-28, 0, -28)))
+            {
+                Debug.Log(debug[0]);
+            }
+            ///
         }
 
         public bool IsRelevant()

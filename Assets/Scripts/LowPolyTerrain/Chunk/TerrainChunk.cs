@@ -6,7 +6,9 @@ namespace LowPolyTerrain.Chunk
 {
     class TerrainChunk
     {
-        public static Vector3Int ChunkSize = new Vector3Int(50, 15, 50);
+        public static Vector3Int ChunkSizeInCubes = new Vector3Int(14, 24, 14);
+        public static Vector3Int ChunkSizeInPoints = TerrainChunk.ChunkSizeInCubes + Vector3Int.one;
+
         public static GameObject prefab;
         public static Transform parent;
         public readonly TerrainChunkIndex index;
@@ -18,7 +20,7 @@ namespace LowPolyTerrain.Chunk
         {
             this.index = index;
             meshGenerator = new TerrainChunkMeshGenerator(index);
-            this.terrainObject = MonoBehaviour.Instantiate(prefab, Vector3.zero, Quaternion.identity, parent);
+            this.terrainObject = MonoBehaviour.Instantiate(prefab, index.ToPosition(), Quaternion.identity, parent);
             terrainObject.GetComponent<TerrainChunkBehaviour>().chunk = this;
             terrainObject.GetComponent<MeshFilter>().mesh = meshGenerator.mesh;
             terrainObject.GetComponent<MeshCollider>().sharedMesh = meshGenerator.mesh;

@@ -9,6 +9,8 @@ namespace LowPolyTerrain.MeshGeneration
 {
     class TerrainChunkMeshGenerator
     {
+        public const float IsoLevel = -3.5f;
+
         public Mesh mesh;
         public readonly TerrainChunkConstraint constraint;
         public Triangle[] triangles;
@@ -17,15 +19,17 @@ namespace LowPolyTerrain.MeshGeneration
         public MarchingCubesShader marchingCubesShader;
 
         GetPointsToAlterShader getPointsToAlterShader;
-
         TerrainChunkIndex index;
 
-        public static void Init(ComputeShader surfaceLevelGeneratorShader, ComputeShader marchingCubesGeneratorShader, ComputeShader getPointsToAlterShader)
+        public static void Init(ComputeShader surfaceLevelGeneratorShader, ComputeShader marchingCubesGeneratorShader, ComputeShader getPointsToAlterShader, ComputeShader prepareRelevantCubesShader)
         {
             SurfaceLevelShader.surfaceLevelGeneratorShader = surfaceLevelGeneratorShader;
-            SurfaceLevelShader.seed = Random.Range(-1000000f, 1000000f);
+            SurfaceLevelShader.seed = 12;//Random.Range(-1000000f, 1000000f);
             MarchingCubesShader.marchingCubesGeneratorShader = marchingCubesGeneratorShader;
             GetPointsToAlterShader.getPointsToAlterShader = getPointsToAlterShader;
+            ///
+            PrepareRelevantCubesShader.prepareRelevantCubesShader = prepareRelevantCubesShader;
+            ///
         }
 
         public TerrainChunkMeshGenerator(TerrainChunkIndex index)

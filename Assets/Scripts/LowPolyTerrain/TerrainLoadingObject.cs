@@ -7,12 +7,14 @@ namespace LowPolyTerrain
 {
     class TerrainLoadingObject : MonoBehaviour
     {
+        public static TerrainLoadingObject current;
 #pragma warning disable 649
         public GameObject loadingObject;
         public GameObject terrainChunkPrefab;
         public ComputeShader surfaceLevelGeneratorShader;
         public ComputeShader marchingCubesGeneratorShader;
         public ComputeShader getPointsToAlterShader;
+        public ComputeShader prepareRelevantCubesShader;
         public int renderDistance;
 
         List<TerrainChunk> loadedChunks;
@@ -21,6 +23,9 @@ namespace LowPolyTerrain
         void Awake()
         {
             loadedChunks = new List<TerrainChunk>();
+            current = this;
+            red = new List<Vector3>();
+            blue = new List<Vector3>();
         }
 
         void Start()
@@ -34,7 +39,7 @@ namespace LowPolyTerrain
         {
             TerrainChunk.prefab = terrainChunkPrefab;
             TerrainChunk.parent = transform;
-            TerrainChunkMeshGenerator.Init(surfaceLevelGeneratorShader, marchingCubesGeneratorShader, getPointsToAlterShader);
+            TerrainChunkMeshGenerator.Init(surfaceLevelGeneratorShader, marchingCubesGeneratorShader, getPointsToAlterShader, prepareRelevantCubesShader);
             TerrainChunkLoadingManager.Init();
             TerrainChunkAlterationManager.Init();
         }
@@ -99,6 +104,24 @@ namespace LowPolyTerrain
             TerrainChunk chunkToAdd = new TerrainChunk(indexToLoad);
             TerrainChunkLoadingManager.chunksToLoad.Add(chunkToAdd); // Change to Queue
             loadedChunks.Add(chunkToAdd);
+        }
+
+        public List<Vector3> red;
+        public List<Vector3> blue;
+
+        void OnDrawGizmos()
+        {
+            foreach (Vector3 cube in red)
+            {
+                Gizmos.color = new Color(1, 0, 0, 0.5f);
+                Gizmos.DrawSphere(cube, .1f);
+            }
+
+            foreach (Vector3 cube in blue)
+            {
+                Gizmos.color = new Color(0, 0, 1, 0.5f);
+                Gizmos.DrawSphere(cube, .1f);
+            }
         }
     }
 }

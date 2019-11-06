@@ -1,10 +1,9 @@
 #pragma kernel GetPointsToAlter
-
-static const int numThreadsGetPointsToAlter = 5;
 /*
-    - Have a list of cube triangle amounts coming out of MarchingCubes to be used later for alterations
-    - Organize shader code and documents
+    finding points by location is easy, since the location can be made into an index
 */
+static const int numThreadsGetPointsToAlter = 5;
+
 struct Point
 {
     float3 position;

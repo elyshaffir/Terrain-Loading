@@ -4,7 +4,7 @@ namespace LowPolyTerrain.Chunk
 {
     class TerrainChunkConstraint
     {
-        public readonly Vector3Int scale; // Scale is by TerrainChunk.ChunkSize
+        public readonly Vector3Int scale; // Scale is by TerrainChunk.ChunkSizeInPoints
         public Vector3 position { get; private set; }
 
         public TerrainChunkConstraint(Vector3 position)
@@ -15,7 +15,7 @@ namespace LowPolyTerrain.Chunk
 
         public int GetVolume()
         {
-            return scale.x * TerrainChunk.ChunkSize.x * scale.y * TerrainChunk.ChunkSize.y * scale.z * TerrainChunk.ChunkSize.z;
+            return scale.x * TerrainChunk.ChunkSizeInPoints.x * scale.y * TerrainChunk.ChunkSizeInPoints.y * scale.z * TerrainChunk.ChunkSizeInPoints.z;
         }
     }
 }

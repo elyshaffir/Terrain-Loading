@@ -28,7 +28,7 @@ namespace LowPolyTerrain.ShaderObjects
             this.generator = generator;
         }
 
-        public void SetSphere(float sphereRadius, Vector3 spherePosition)
+        void SetSphere(float sphereRadius, Vector3 spherePosition)
         {
             this.sphereRadius = sphereRadius;
             this.spherePosition = spherePosition;
@@ -37,9 +37,9 @@ namespace LowPolyTerrain.ShaderObjects
         protected override ComputeShaderProperty[] GetProperties()
         {
             return new ComputeShaderProperty[] {
-                new ComputeShaderIntProperty("numPointsX", generator.constraint.scale.x * TerrainChunk.ChunkSize.x),
-                new ComputeShaderIntProperty("numPointsY", generator.constraint.scale.y * TerrainChunk.ChunkSize.y),
-                new ComputeShaderIntProperty("numPointsZ", generator.constraint.scale.z * TerrainChunk.ChunkSize.z),
+                new ComputeShaderIntProperty("numPointsX", generator.constraint.scale.x * TerrainChunk.ChunkSizeInCubes.x),
+                new ComputeShaderIntProperty("numPointsY", generator.constraint.scale.y * TerrainChunk.ChunkSizeInCubes.y),
+                new ComputeShaderIntProperty("numPointsZ", generator.constraint.scale.z * TerrainChunk.ChunkSizeInCubes.z),
                 new ComputeShaderFloatProperty("sphereRadius", sphereRadius),
                 new ComputeShaderVector3Property("spherePosition", spherePosition)
             };
@@ -62,9 +62,9 @@ namespace LowPolyTerrain.ShaderObjects
         public override void Dispatch()
         {
             Dispatch(
-                generator.constraint.scale.x * TerrainChunk.ChunkSize.x / 5,
-                generator.constraint.scale.y * TerrainChunk.ChunkSize.y / 5,
-                generator.constraint.scale.z * TerrainChunk.ChunkSize.z / 5,
+                generator.constraint.scale.x * TerrainChunk.ChunkSizeInCubes.x / 5,
+                generator.constraint.scale.y * TerrainChunk.ChunkSizeInCubes.y / 5,
+                generator.constraint.scale.z * TerrainChunk.ChunkSizeInCubes.z / 5,
                 GetProperties());
         }
 

@@ -52,4 +52,6 @@ MonoBehaviour:
     type: 3}
   getPointsToAlterShader: {fileID: 7200000, guid: 0561e0e439404dc47aa9202471df6827,
     type: 3}
+  prepareRelevantCubesShader: {fileID: 7200000, guid: 812e2afd830621e44a6ab443e95dd882,
+    type: 3}
   renderDistance: 2

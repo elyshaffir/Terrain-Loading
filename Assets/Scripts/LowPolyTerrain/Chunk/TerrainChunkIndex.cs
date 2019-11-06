@@ -76,18 +76,18 @@ namespace LowPolyTerrain.Chunk
         public static TerrainChunkIndex FromVector(Vector3 v)
         {
             return new TerrainChunkIndex(
-                Mathf.FloorToInt(v.x / TerrainChunk.ChunkSize.x),
-                Mathf.FloorToInt(v.y / TerrainChunk.ChunkSize.y),
-                Mathf.FloorToInt(v.z / TerrainChunk.ChunkSize.z)
+                Mathf.FloorToInt(v.x / TerrainChunk.ChunkSizeInCubes.x),
+                Mathf.FloorToInt(v.y / TerrainChunk.ChunkSizeInCubes.y),
+                Mathf.FloorToInt(v.z / TerrainChunk.ChunkSizeInCubes.z)
             );
         }
 
         public Vector3 ToPosition()
         {
             return new Vector3(
-                x * TerrainChunk.ChunkSize.x,
-                y * TerrainChunk.ChunkSize.y,
-                z * TerrainChunk.ChunkSize.z
+                x * TerrainChunk.ChunkSizeInCubes.x,
+                y * TerrainChunk.ChunkSizeInCubes.y,
+                z * TerrainChunk.ChunkSizeInCubes.z
             );
         }
 

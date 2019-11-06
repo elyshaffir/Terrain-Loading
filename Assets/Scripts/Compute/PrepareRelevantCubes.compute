@@ -1,0 +1,25 @@
+#pragma kernel PrepareRelevantCubes
+
+static const int numThreadsPrepareRelevantCubes = 7;
+
+RWStructuredBuffer<uint> relevantCubeCorners;
+AppendStructuredBuffer<uint3> cubesToMarch;
+
+uint numPointsX;
+uint numPointsY;
+uint numPointsZ;
+
+uint indexFromCoordsInCubes(uint x, uint y, uint z)
+{
+    return z * (numPointsX - 1) * (numPointsY - 1) + y * (numPointsX - 1) + x;
+}
+
+[numthreads(numThreadsPrepareRelevantCubes, numThreadsPrepareRelevantCubes, numThreadsPrepareRelevantCubes)]
+void PrepareRelevantCubes(uint3 id : SV_DispatchThreadID)
+{    
+    uint index = indexFromCoordsInCubes(id.x, id.y, id.z);
+    if (relevantCubeCorners[index] % 8 != 0)
+    {
+        cubesToMarch.Append(id);        
+    }
+}

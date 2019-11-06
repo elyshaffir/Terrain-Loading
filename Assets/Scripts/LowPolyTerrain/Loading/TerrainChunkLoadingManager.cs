@@ -40,7 +40,7 @@ namespace LowPolyTerrain.Chunk
 
         static int CalculateChunksPerFrame(int renderDistance)
         {
-            return (int)Math.Ceiling(TerrainChunk.ChunkSize.magnitude / renderDistance * TerrainChunkIndex.GetRenderDistanceY(renderDistance) * renderDistance);
+            return (int)Math.Ceiling(TerrainChunk.ChunkSizeInCubes.magnitude / renderDistance * TerrainChunkIndex.GetRenderDistanceY(renderDistance) * renderDistance);
         }
 
         public static void PhaseTwo()

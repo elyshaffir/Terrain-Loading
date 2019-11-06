@@ -22,19 +22,19 @@ namespace ComputeShading
             {
                 case ComputeShaderPropertyType.Int:
                     ComputeShaderIntProperty intProperty = (ComputeShaderIntProperty)this;
-                    shader.SetInt(intProperty.name, intProperty.Value);
+                    shader.SetInt(intProperty.name, intProperty.value);
                     break;
                 case ComputeShaderPropertyType.Float:
                     ComputeShaderFloatProperty floatProperty = (ComputeShaderFloatProperty)this;
-                    shader.SetFloat(floatProperty.name, floatProperty.Value);
+                    shader.SetFloat(floatProperty.name, floatProperty.value);
                     break;
                 case ComputeShaderPropertyType.Vector3:
                     ComputeShaderVector3Property vector3Property = (ComputeShaderVector3Property)this;
-                    shader.SetVector(vector3Property.name, vector3Property.Value);
+                    shader.SetVector(vector3Property.name, vector3Property.value);
                     break;
                 case ComputeShaderPropertyType.Vector4:
                     ComputeShaderVector4Property vector4Property = (ComputeShaderVector4Property)this;
-                    shader.SetVector(vector4Property.name, vector4Property.Value);
+                    shader.SetVector(vector4Property.name, vector4Property.value);
                     break;
             }
         }
@@ -43,8 +43,9 @@ namespace ComputeShading
 
         public class ComputeShaderIntProperty : ComputeShaderProperty
         {
-            public int Value;
-            public ComputeShaderIntProperty(string name, int Value) : base(name) => this.Value = Value;
+            public int value;
+
+            public ComputeShaderIntProperty(string name, int value) : base(name) => this.value = value;
 
             public override ComputeShaderPropertyType GetPropertyType()
             {
@@ -54,8 +55,9 @@ namespace ComputeShading
 
         public class ComputeShaderFloatProperty : ComputeShaderProperty
         {
-            public float Value;
-            public ComputeShaderFloatProperty(string name, float Value) : base(name) => this.Value = Value;
+            public float value;
+
+            public ComputeShaderFloatProperty(string name, float value) : base(name) => this.value = value;
 
             public override ComputeShaderPropertyType GetPropertyType()
             {
@@ -65,8 +67,9 @@ namespace ComputeShading
 
         public class ComputeShaderVector3Property : ComputeShaderProperty
         {
-            public Vector3 Value;
-            public ComputeShaderVector3Property(string name, Vector3 Value) : base(name) => this.Value = Value;
+            public Vector3 value;
+
+            public ComputeShaderVector3Property(string name, Vector3 value) : base(name) => this.value = value;
 
             public override ComputeShaderPropertyType GetPropertyType()
             {
@@ -76,8 +79,9 @@ namespace ComputeShading
 
         public class ComputeShaderVector4Property : ComputeShaderProperty
         {
-            public Vector4 Value;
-            public ComputeShaderVector4Property(string name, Vector4 Value) : base(name) => this.Value = Value;
+            public Vector4 value;
+
+            public ComputeShaderVector4Property(string name, Vector4 value) : base(name) => this.value = value;
 
             public override ComputeShaderPropertyType GetPropertyType()
             {
