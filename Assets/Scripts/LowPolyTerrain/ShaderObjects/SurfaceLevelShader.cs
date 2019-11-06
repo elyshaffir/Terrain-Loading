@@ -121,7 +121,7 @@ namespace LowPolyTerrain.ShaderObjects
             debugBuffer.GetData(debug);
             if (generator.constraint.position.Equals(new Vector3(-28, 0, -28)))
             {
-                Debug.Log(debug[0]);
+                // Debug.Log(debug[0]);
             }
             ///
         }

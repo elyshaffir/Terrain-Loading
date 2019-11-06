@@ -111,21 +111,21 @@ namespace LowPolyTerrain.ShaderObjects
                 Debug.Log(debug[0]);
                 Vector3 negativeCorner = new Vector3(debug[1], debug[2], debug[3]);
 
-                TerrainLoadingObject.current.blue.Add(negativeCorner + generator.constraint.position);
+                // TerrainLoadingObject.current.blue.Add(negativeCorner + generator.constraint.position);
 
-                int currentDebug = 1;
-                float avg = 0;
-                for (int i = 0; i < 8; i++)
-                {
-                    TerrainLoadingObject.current.red.Add(new Vector3(
-                        debug[currentDebug],
-                        debug[currentDebug + 1],
-                        debug[currentDebug + 2]
-                    ) + generator.constraint.position);
-                    avg += debug[currentDebug + 3];
-                    currentDebug += 4;
-                }
-                Debug.Log(avg / 7);
+                // int currentDebug = 1;
+                // float avg = 0;
+                // for (int i = 0; i < 8; i++)
+                // {
+                //     TerrainLoadingObject.current.red.Add(new Vector3(
+                //         debug[currentDebug],
+                //         debug[currentDebug + 1],
+                //         debug[currentDebug + 2]
+                //     ) + generator.constraint.position);
+                //     avg += debug[currentDebug + 3];
+                //     currentDebug += 4;
+                // }
+                // Debug.Log(avg / 7);
                 Debug.Log(debug[99]);
             }
         }

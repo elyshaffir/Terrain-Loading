@@ -72,9 +72,15 @@ namespace LowPolyTerrain.ShaderObjects
             cubesToMarchBuffer.GetData(cubesToMarch);
             generator.marchingCubesShader.SetCubesToMarch(cubesToMarch);
 
-            /// The borders are problematic because it is multithreaded            
-            // Debug.Log(timesAddedCount[0] == 1558); // all false, meanning changing the value of an array from multi-threaded program is non deterministic
-            // this is causing some cubes to be marched when they shouldn't, but still doesn't explain why there are holes
+            if (true || generator.constraint.position.Equals(new Vector3(-28, 0, -28)))
+            {
+                foreach (uint3 marchedCube in cubesToMarch)
+                {
+                    TerrainLoadingObject.current.marchedCubes.Add(new Vector3(marchedCube.x, marchedCube.y, marchedCube.z) + generator.constraint.position);
+                }
+            }
+
+            // Changing the value of an array from multi-threaded program is non deterministic            
             // A possible solution is to utilize the fact that the (p.surfaceLevel < isoLevel) conditional when flipped gives accurate results from the other side
             // -- and inaccurate results from the other side (that gets accurate results when the conditional is as usual)
             ///

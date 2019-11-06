@@ -24,8 +24,7 @@ namespace LowPolyTerrain
         {
             loadedChunks = new List<TerrainChunk>();
             current = this;
-            red = new List<Vector3>();
-            blue = new List<Vector3>();
+            marchedCubes = new List<Vector3>();
         }
 
         void Start()
@@ -106,21 +105,13 @@ namespace LowPolyTerrain
             loadedChunks.Add(chunkToAdd);
         }
 
-        public List<Vector3> red;
-        public List<Vector3> blue;
+        public List<Vector3> marchedCubes;
 
         void OnDrawGizmos()
         {
-            foreach (Vector3 cube in red)
+            foreach (Vector3 cube in marchedCubes)
             {
-                Gizmos.color = new Color(1, 0, 0, 0.5f);
-                Gizmos.DrawSphere(cube, .1f);
-            }
-
-            foreach (Vector3 cube in blue)
-            {
-                Gizmos.color = new Color(0, 0, 1, 0.5f);
-                Gizmos.DrawSphere(cube, .1f);
+                Gizmos.DrawWireCube(cube + Vector3.one * .5f, Vector3.one);
             }
         }
     }

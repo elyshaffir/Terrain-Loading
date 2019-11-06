@@ -160,8 +160,8 @@ void GenerateSurfaceLevel(uint3 id : SV_DispatchThreadID)
 	Point p;
 	p.position = id; // local position in chunk
 	p.surfaceLevel = generatedNoise - pos.y;
-	
-	if (p.surfaceLevel < isoLevel)
+		
+	if (abs(p.surfaceLevel - isoLevel) < 1.5) // fiding optimal number will create an optimal marching amount, if holes appear enlarge this number
 	{
 		relevant.Append(1);		
 		AddRelevantCubes(id);		
