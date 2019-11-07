@@ -1,41 +1,18 @@
 ﻿#pragma kernel MarchCubes
 #include "Imported/MarchTables.compute"
+#include "Utils/DataStructures/Point.compute"
+#include "Utils/DataStructures/Triangle.compute"
+#include "Utils/ChunkIndexing.compute"
 
 static const int numThreadsMarchCubes = 1;
 
-/*
-	- Have 'triangles' contain 6 (alleged maximum number of triangles) triangles for each cube
-	-- if needed less than 6 triangles add an empty one with preset impossible values or something along those lines
-	- When recreating a new chunk with new alterations not-yet-applied:
-	-- delete the triangles in cubes modified
-	-- recalculate them
-	-->> (This makes altering a chunk not require going over each point again)		
-
-	------------
-	Also check the option to use something else than RWStructuredBuffer when need only read and not write
-*/
-
-struct Point { // Appears twice since importing in HLSL is a headache
-	float3 position;	
-	float surfaceLevel;
-	float3 onEdges;
-};
-
-struct Triangle {
-	float3 vertexC;
-	float3 vertexB;
-	float3 vertexA;
-};
-
 AppendStructuredBuffer<Triangle> triangles;
-RWStructuredBuffer<Point> points;
-RWStructuredBuffer<uint3> cubesToMarch;
-
-RWStructuredBuffer<float> debug;
+StructuredBuffer<Point> points;
+StructuredBuffer<uint3> cubesToMarch;
 
 uint numPointsX;
 uint numPointsY;
-uint numPointsZ;
+
 float isoLevel;
 
 float3 interpolateVerts(Point v1, Point v2) {
@@ -43,49 +20,46 @@ float3 interpolateVerts(Point v1, Point v2) {
 	return v1.position + t * (v2.position - v1.position);
 }
 
-uint indexFromCoord(uint x, uint y, uint z) {	
-	return z * numPointsX * numPointsY + y * numPointsX + x;
+int getCubeIndex(Point cubeCorners[8]) {
+	int cubeIndex = 0;
+	if (cubeCorners[0].surfaceLevel < isoLevel)
+		cubeIndex |= 1;
+	if (cubeCorners[1].surfaceLevel < isoLevel)
+		cubeIndex |= 2;
+	if (cubeCorners[2].surfaceLevel < isoLevel)
+		cubeIndex |= 4;
+	if (cubeCorners[3].surfaceLevel < isoLevel)
+		cubeIndex |= 8;
+	if (cubeCorners[4].surfaceLevel < isoLevel)
+		cubeIndex |= 16;
+	if (cubeCorners[5].surfaceLevel < isoLevel)
+		cubeIndex |= 32;
+	if (cubeCorners[6].surfaceLevel < isoLevel)
+		cubeIndex |= 64;
+	if (cubeCorners[7].surfaceLevel < isoLevel)
+		cubeIndex |= 128;
+	return cubeIndex;
 }
 
 [numthreads(numThreadsMarchCubes, numThreadsMarchCubes, numThreadsMarchCubes)]
 void MarchCubes(uint3 id : SV_DispatchThreadID)
 {
-	uint cubeToMarchIndex = indexFromCoord(id.x, id.y, id.z);
+	uint cubeToMarchIndex = indexFromCoords(id.x, numPointsX, id.y, numPointsY, id.z);
 	if (cubeToMarchIndex < (uint)cubesToMarch.Length)
-	{		
+	{
 		uint3 cubeToMarch = cubesToMarch[cubeToMarchIndex];
 		Point cubeCorners[8] = {
-			points[indexFromCoord(cubeToMarch.x, cubeToMarch.y, cubeToMarch.z)],
-			points[indexFromCoord(cubeToMarch.x + 1, cubeToMarch.y, cubeToMarch.z)],
-			points[indexFromCoord(cubeToMarch.x + 1, cubeToMarch.y, cubeToMarch.z + 1)],
-			points[indexFromCoord(cubeToMarch.x, cubeToMarch.y, cubeToMarch.z + 1)],
-			points[indexFromCoord(cubeToMarch.x, cubeToMarch.y + 1, cubeToMarch.z)],
-			points[indexFromCoord(cubeToMarch.x + 1, cubeToMarch.y + 1, cubeToMarch.z)],
-			points[indexFromCoord(cubeToMarch.x + 1, cubeToMarch.y + 1, cubeToMarch.z + 1)],
-			points[indexFromCoord(cubeToMarch.x, cubeToMarch.y + 1, cubeToMarch.z + 1)]};
+			points[indexFromCoords(cubeToMarch.x, numPointsX, cubeToMarch.y, numPointsY, cubeToMarch.z)],
+			points[indexFromCoords(cubeToMarch.x + 1, numPointsX, cubeToMarch.y, numPointsY, cubeToMarch.z)],
+			points[indexFromCoords(cubeToMarch.x + 1, numPointsX, cubeToMarch.y, numPointsY, cubeToMarch.z + 1)],
+			points[indexFromCoords(cubeToMarch.x, numPointsX, cubeToMarch.y, numPointsY, cubeToMarch.z + 1)],
+			points[indexFromCoords(cubeToMarch.x, numPointsX, cubeToMarch.y + 1, numPointsY, cubeToMarch.z)],
+			points[indexFromCoords(cubeToMarch.x + 1, numPointsX, cubeToMarch.y + 1, numPointsY, cubeToMarch.z)],
+			points[indexFromCoords(cubeToMarch.x + 1, numPointsX, cubeToMarch.y + 1, numPointsY, cubeToMarch.z + 1)],
+			points[indexFromCoords(cubeToMarch.x, numPointsX, cubeToMarch.y + 1, numPointsY, cubeToMarch.z + 1)]};
 
-		// debug[0] = max(debug[0], indexFromCoord(cubeToMarch.x + 1, cubeToMarch.y + 1, cubeToMarch.z + 1));
+		int cubeIndex = getCubeIndex(cubeCorners);
 
-		int cubeIndex = 0;
-		if (cubeCorners[0].surfaceLevel < isoLevel)
-			cubeIndex |= 1;
-		if (cubeCorners[1].surfaceLevel < isoLevel)
-			cubeIndex |= 2;
-		if (cubeCorners[2].surfaceLevel < isoLevel)
-			cubeIndex |= 4;
-		if (cubeCorners[3].surfaceLevel < isoLevel)
-			cubeIndex |= 8;
-		if (cubeCorners[4].surfaceLevel < isoLevel)
-			cubeIndex |= 16;
-		if (cubeCorners[5].surfaceLevel < isoLevel)
-			cubeIndex |= 32;
-		if (cubeCorners[6].surfaceLevel < isoLevel)
-			cubeIndex |= 64;
-		if (cubeCorners[7].surfaceLevel < isoLevel)
-			cubeIndex |= 128;
-
-
-		int trianglesCounter = 0;
 		for (int i = 0; triangulation[cubeIndex][i] != -1; i += 3)
 		{
 			int a0 = cornerIndexAFromEdge[triangulation[cubeIndex][i]];
@@ -101,25 +75,7 @@ void MarchCubes(uint3 id : SV_DispatchThreadID)
 			tri.vertexA = interpolateVerts(cubeCorners[a0], cubeCorners[b0]);
 			tri.vertexB = interpolateVerts(cubeCorners[a1], cubeCorners[b1]);
 			tri.vertexC = interpolateVerts(cubeCorners[a2], cubeCorners[b2]);
-			triangles.Append(tri);
-			trianglesCounter++;
-		}
-		if (cubeToMarch.x == 8 && cubeToMarch.y == 4 && cubeToMarch.z == 3) { // Non deterministic cracks!
-			debug[99] = trianglesCounter;
-			debug[0] = indexFromCoord(cubeToMarch.x, cubeToMarch.y, cubeToMarch.z);
-
-			int currentDebug = 1;
-			for (int i = 0; i < 8; i++)
-			{
-				debug[currentDebug] = cubeCorners[i].position.x;
-				currentDebug++;
-				debug[currentDebug] = cubeCorners[i].position.y;
-				currentDebug++;
-				debug[currentDebug] = cubeCorners[i].position.z;
-				currentDebug++;
-				debug[currentDebug] = cubeCorners[i].surfaceLevel;
-				currentDebug++;
-			}
-		}			
+			triangles.Append(tri);			
+		}		
 	}	
 }

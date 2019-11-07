@@ -24,12 +24,11 @@ namespace LowPolyTerrain.MeshGeneration
         public static void Init(ComputeShader surfaceLevelGeneratorShader, ComputeShader marchingCubesGeneratorShader, ComputeShader getPointsToAlterShader, ComputeShader prepareRelevantCubesShader)
         {
             SurfaceLevelShader.surfaceLevelGeneratorShader = surfaceLevelGeneratorShader;
-            SurfaceLevelShader.seed = 12;//Random.Range(-1000000f, 1000000f);
             MarchingCubesShader.marchingCubesGeneratorShader = marchingCubesGeneratorShader;
             GetPointsToAlterShader.getPointsToAlterShader = getPointsToAlterShader;
-            ///
             PrepareRelevantCubesShader.prepareRelevantCubesShader = prepareRelevantCubesShader;
-            ///
+
+            SurfaceLevelShader.seed = Random.Range(-1000000f, 1000000f);
         }
 
         public TerrainChunkMeshGenerator(TerrainChunkIndex index)

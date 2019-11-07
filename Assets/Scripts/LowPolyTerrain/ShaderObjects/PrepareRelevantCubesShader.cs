@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using ComputeShading;
 using LowPolyTerrain.Chunk;
 using LowPolyTerrain.MeshGeneration;
@@ -36,8 +35,7 @@ namespace LowPolyTerrain.ShaderObjects
         {
             return new ComputeShaderProperty[] {
                 new ComputeShaderIntProperty("numPointsX", generator.constraint.scale.x * TerrainChunk.ChunkSizeInPoints.x),
-                new ComputeShaderIntProperty("numPointsY", generator.constraint.scale.y * TerrainChunk.ChunkSizeInPoints.y),
-                new ComputeShaderIntProperty("numPointsZ", generator.constraint.scale.z * TerrainChunk.ChunkSizeInPoints.z)
+                new ComputeShaderIntProperty("numPointsY", generator.constraint.scale.y * TerrainChunk.ChunkSizeInPoints.y)
             };
         }
 
@@ -71,19 +69,6 @@ namespace LowPolyTerrain.ShaderObjects
             uint3[] cubesToMarch = new uint3[cubesToMarchCount[0]];
             cubesToMarchBuffer.GetData(cubesToMarch);
             generator.marchingCubesShader.SetCubesToMarch(cubesToMarch);
-
-            if (true || generator.constraint.position.Equals(new Vector3(-28, 0, -28)))
-            {
-                foreach (uint3 marchedCube in cubesToMarch)
-                {
-                    TerrainLoadingObject.current.marchedCubes.Add(new Vector3(marchedCube.x, marchedCube.y, marchedCube.z) + generator.constraint.position);
-                }
-            }
-
-            // Changing the value of an array from multi-threaded program is non deterministic            
-            // A possible solution is to utilize the fact that the (p.surfaceLevel < isoLevel) conditional when flipped gives accurate results from the other side
-            // -- and inaccurate results from the other side (that gets accurate results when the conditional is as usual)
-            ///
         }
 
         public void Execute(uint[] relevantCubeCorners)

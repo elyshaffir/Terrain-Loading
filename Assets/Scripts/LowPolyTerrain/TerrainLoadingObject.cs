@@ -7,7 +7,6 @@ namespace LowPolyTerrain
 {
     class TerrainLoadingObject : MonoBehaviour
     {
-        public static TerrainLoadingObject current;
 #pragma warning disable 649
         public GameObject loadingObject;
         public GameObject terrainChunkPrefab;
@@ -23,8 +22,6 @@ namespace LowPolyTerrain
         void Awake()
         {
             loadedChunks = new List<TerrainChunk>();
-            current = this;
-            marchedCubes = new List<Vector3>();
         }
 
         void Start()
@@ -85,7 +82,7 @@ namespace LowPolyTerrain
                     TerrainChunk newChunk = new TerrainChunk(newIndex);
 
                     loadedChunks[i] = newChunk;
-                    TerrainChunkLoadingManager.chunksToLoad.Add(newChunk); // Change to Queue                
+                    TerrainChunkLoadingManager.chunksToLoad.Add(newChunk);
                 }
             }
         }
@@ -101,18 +98,8 @@ namespace LowPolyTerrain
         void LoadChunk(TerrainChunkIndex indexToLoad)
         {
             TerrainChunk chunkToAdd = new TerrainChunk(indexToLoad);
-            TerrainChunkLoadingManager.chunksToLoad.Add(chunkToAdd); // Change to Queue
+            TerrainChunkLoadingManager.chunksToLoad.Add(chunkToAdd);
             loadedChunks.Add(chunkToAdd);
-        }
-
-        public List<Vector3> marchedCubes;
-
-        void OnDrawGizmos()
-        {
-            foreach (Vector3 cube in marchedCubes)
-            {
-                Gizmos.DrawWireCube(cube + Vector3.one * .5f, Vector3.one);
-            }
         }
     }
 }

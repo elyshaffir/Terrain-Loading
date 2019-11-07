@@ -1,0 +1,6 @@
+struct Triangle
+{
+    float3 vertexC;
+    float3 vertexB;
+    float3 vertexA;
+};

@@ -20,13 +20,9 @@ namespace LowPolyTerrain.ShaderObjects
         ComputeBuffer irrelevantBuffer;
         ComputeBuffer relevantCountBuffer;
         ComputeBuffer irrelevantCountBuffer;
-
-        ///
         ComputeBuffer relevantCubeCornersBuffer;
-        uint[] relevantCubeCorners;
-        ComputeBuffer debugBuffer;
-        ///
 
+        uint[] relevantCubeCorners;
         bool relevant;
 
         public SurfaceLevelShader(TerrainChunkMeshGenerator generator) :
@@ -62,35 +58,28 @@ namespace LowPolyTerrain.ShaderObjects
         {
             generator.points = new Point[generator.constraint.GetVolume()];
             outputPoints = new ComputeBuffer(generator.points.Length, Point.StructSize);
+
             relevantBuffer = new ComputeBuffer(
                 generator.points.Length, sizeof(int), ComputeBufferType.Append);
+            relevantBuffer.SetCounterValue(0);
+            relevantCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
+
             irrelevantBuffer = new ComputeBuffer(
                 generator.points.Length, sizeof(int), ComputeBufferType.Append);
-            relevantCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
             irrelevantCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
-
-            relevantBuffer.SetCounterValue(0);
             irrelevantBuffer.SetCounterValue(0);
 
-            SetBuffer("relevant", relevantBuffer);
-            SetBuffer("irrelevant", irrelevantBuffer);
-            SetBuffer("points", outputPoints);
-            AddBuffer(relevantCountBuffer);
-            AddBuffer(irrelevantCountBuffer);
-
-            ///
             relevantCubeCorners = new uint[generator.points.Length];
             Array.Clear(relevantCubeCorners, 0, relevantCubeCorners.Length);
             relevantCubeCornersBuffer = new ComputeBuffer(generator.points.Length, sizeof(uint));
             relevantCubeCornersBuffer.SetData(relevantCubeCorners);
-            SetBuffer("relevantCubeCorners", relevantCubeCornersBuffer);
 
-            float[] debug = new float[10];
-            Array.Clear(debug, 0, debug.Length);
-            debugBuffer = new ComputeBuffer(debug.Length, sizeof(float));
-            debugBuffer.SetData(debug);
-            SetBuffer("debug", debugBuffer);
-            ///
+            SetBuffer("points", outputPoints);
+            SetBuffer("relevant", relevantBuffer);
+            SetBuffer("irrelevant", irrelevantBuffer);
+            SetBuffer("relevantCubeCorners", relevantCubeCornersBuffer);
+            AddBuffer(relevantCountBuffer);
+            AddBuffer(irrelevantCountBuffer);
         }
 
         public override void Dispatch()
@@ -104,26 +93,21 @@ namespace LowPolyTerrain.ShaderObjects
 
         public override void GetData()
         {
+            outputPoints.GetData(generator.points);
+
             ComputeBuffer.CopyCount(relevantBuffer, relevantCountBuffer, 0);
             int[] relevantCount = new int[1] { 0 };
             relevantCountBuffer.GetData(relevantCount);
+
             ComputeBuffer.CopyCount(irrelevantBuffer, irrelevantCountBuffer, 0);
             int[] irrelevantCount = new int[1] { 0 };
             irrelevantCountBuffer.GetData(irrelevantCount);
-            outputPoints.GetData(generator.points);
-            relevant = relevantCount[0] != 0 && irrelevantCount[0] != generator.points.Length;
 
-            ///
             relevantCubeCornersBuffer.GetData(relevantCubeCorners);
             PrepareRelevantCubesShader prepareRelevantCubesShader = new PrepareRelevantCubesShader(generator);
             prepareRelevantCubesShader.Execute(relevantCubeCorners);
-            float[] debug = new float[10];
-            debugBuffer.GetData(debug);
-            if (generator.constraint.position.Equals(new Vector3(-28, 0, -28)))
-            {
-                // Debug.Log(debug[0]);
-            }
-            ///
+
+            relevant = relevantCount[0] != 0 && irrelevantCount[0] != generator.points.Length;
         }
 
         public bool IsRelevant()

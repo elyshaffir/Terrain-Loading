@@ -1,0 +1,41 @@
+uint indexFromCoords(uint x, uint numPointsX, uint y, uint numPointsY, uint z)
+{
+    return z * numPointsX * numPointsY + y * numPointsX + x;
+}
+
+uint indexFromCoordsInCubes(uint x, uint numPointsX, uint y, uint numPointsY, uint z)
+{    
+    return indexFromCoords(x, numPointsX - 1, y, numPointsY - 1, z);
+}
+
+float3 calculateOnEdges(uint x, uint numPointsX, uint y, uint numPointsY, uint z, uint numPointsZ)
+{
+    float3 onEdges = float3(0, 0, 0);
+    if (x + 1 == numPointsX)
+    {
+        onEdges.x = 1;
+    }
+    else if (x == 0)
+    {
+        onEdges.x = -1;
+    }
+
+    if (y + 1 == numPointsY)
+    {
+        onEdges.y = 1;
+    }
+    else if (y == 0)
+    {
+        onEdges.y = -1;
+    }
+
+    if (z + 1 == numPointsZ)
+    {
+        onEdges.z = 1;
+    }
+    else if (z == 0)
+    {
+        onEdges.z = -1;
+    }
+    return onEdges;
+}

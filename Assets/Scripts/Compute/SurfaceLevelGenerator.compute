@@ -1,20 +1,14 @@
 ﻿#pragma kernel GenerateSurfaceLevel
-
 #include "Imported/Noise.compute"
+#include "Utils/DataStructures/Point.compute"
+#include "Utils/ChunkIndexing.compute"
 
 static const int numThreadsSurfaceLevel = 5;
-
-struct Point { // Appears twice since importing in HLSL is a headache
-	float3 position;	
-	float surfaceLevel;
-	float3 onEdges;
-};
 
 RWStructuredBuffer<Point> points;
 AppendStructuredBuffer<int> relevant;
 AppendStructuredBuffer<int> irrelevant;
 RWStructuredBuffer<uint> relevantCubeCorners;
-RWStructuredBuffer<float> debug;
 
 uint numPointsX;
 uint numPointsY;
@@ -31,7 +25,7 @@ float noiseWeight;
 float4 params;
 float hardFloor;
 float hardFloorWeight;
-float offsetNoise; // basically seed
+float offsetNoise;
 
 float isoLevel;
 
@@ -59,59 +53,10 @@ float generateNoise(float3 pos)
 	return finalVal;
 }
 
-uint indexFromCoords(uint x, uint y, uint z)
-{	
-	return z * numPointsX * numPointsY + y * numPointsX + x;
-}
-
-uint indexFromCoordsInCubes(uint x, uint y, uint z)
-{
-	return z * (numPointsX - 1) * (numPointsY - 1) + y * (numPointsX - 1) + x;
-}
-
-float3 calculateOnEdges(uint x, uint y, uint z) // Can be int
-{
-	float3 onEdges = float3(0, 0, 0);
-	if (x + 1 == numPointsX)
-	{
-		onEdges.x = 1;
-	}
-	else if (x == 0)
-	{
-		onEdges.x = -1;
-	}
-
-	if (y + 1 == numPointsY)
-	{
-		onEdges.y = 1;
-	}
-	else if (y == 0)
-	{
-		onEdges.y = -1;
-	}
-
-	if (z + 1 == numPointsZ)
-	{
-		onEdges.z = 1;
-	}
-	else if (z == 0)
-	{
-		onEdges.z = -1;
-	}
-	return onEdges;
-}
-
 void AddCube(uint3 cube)
-{		
-	uint index = indexFromCoordsInCubes(cube.x, cube.y, cube.z);
-	// relevantCubeCorners[index] = uint(relevantCubeCorners[index] + 1) % 8;	
-	// relevantCubeCorners[index]++; // if this is the line, non-deterministic cracks appear
-	relevantCubeCorners[index] = 1;
-	if (cube.x == 8 && cube.y == 4 && cube.z == 3)
-	{
-		// debug[0] = max(debug[0], relevantCubeCorners[index]);
-		debug[0] = 9;
-	}
+{
+	uint index = indexFromCoordsInCubes(cube.x, numPointsX, cube.y, numPointsY, cube.z);
+	relevantCubeCorners[index] = 1;	
 }
 
 void AddRelevantCubes(uint3 id)
@@ -149,25 +94,22 @@ void AddRelevantCubes(uint3 id)
 
 [numthreads(numThreadsSurfaceLevel, numThreadsSurfaceLevel, numThreadsSurfaceLevel)]
 void GenerateSurfaceLevel(uint3 id : SV_DispatchThreadID)
-{
-	/*
-	Perhaps take out of a queue an index every time and go over that index, to help preventing doubles and shit	
-	*/
-	float3 pos = float3(id.x, id.y, id.z) + offset; // world position
-	float generatedNoise = generateNoise(pos);		
-	int index = indexFromCoords(id.x, id.y, id.z);		
-	
+{	
+	float3 pos = float3(id.x, id.y, id.z) + offset; // World position
+	float generatedNoise = generateNoise(pos);
+	int index = indexFromCoords(id.x, numPointsX, id.y, numPointsY, id.z);
+
 	Point p;
-	p.position = id; // local position in chunk
+	p.position = id; // Local position in chunk
 	p.surfaceLevel = generatedNoise - pos.y;
 		
-	if (abs(p.surfaceLevel - isoLevel) < 1.5) // fiding optimal number will create an optimal marching amount, if holes appear enlarge this number
+	if (abs(p.surfaceLevel - isoLevel) < 1.5) // Finding optimal number will create an optimal marching amount, if holes appear enlarge this number
 	{
-		relevant.Append(1);		
+		relevant.Append(1);
 		AddRelevantCubes(id);		
 	} else {
 		irrelevant.Append(1);
 	}
-	p.onEdges = calculateOnEdges(id.x, id.y, id.z);
+	p.onEdges = calculateOnEdges(id.x, numPointsX, id.y, numPointsY, id.z, numPointsZ);
 	points[index] = p;
 }

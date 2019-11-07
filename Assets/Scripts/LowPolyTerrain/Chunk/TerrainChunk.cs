@@ -6,7 +6,7 @@ namespace LowPolyTerrain.Chunk
 {
     class TerrainChunk
     {
-        public static Vector3Int ChunkSizeInCubes = new Vector3Int(14, 24, 14);
+        public static Vector3Int ChunkSizeInCubes = new Vector3Int(49, 24, 49);
         public static Vector3Int ChunkSizeInPoints = TerrainChunk.ChunkSizeInCubes + Vector3Int.one;
 
         public static GameObject prefab;

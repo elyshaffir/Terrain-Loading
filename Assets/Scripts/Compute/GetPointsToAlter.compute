@@ -1,35 +1,22 @@
 #pragma kernel GetPointsToAlter
-/*
-    finding points by location is easy, since the location can be made into an index
-*/
+#include "Utils/DataStructures/Point.compute"
+#include "Utils/ChunkIndexing.compute"
+
 static const int numThreadsGetPointsToAlter = 5;
 
-struct Point
-{
-    float3 position;
-    float surfaceLevel;
-    float3 onEdges;
-};
-
-RWStructuredBuffer<Point> points;
+StructuredBuffer<Point> points;
 AppendStructuredBuffer<int> pointsToAlter;
 
 int numPointsX;
 int numPointsY;
-int numPointsZ;
 
 float sphereRadius;
 float3 spherePosition;
 
-int indexFromCoords(uint x, uint y, uint z)
-{
-    return z * numPointsX * numPointsY + y * numPointsX + x;
-}
-
 [numthreads(numThreadsGetPointsToAlter, numThreadsGetPointsToAlter, numThreadsGetPointsToAlter)]
 void GetPointsToAlter(uint3 id : SV_DispatchThreadID)
 {
-    int index = indexFromCoords(id.x, id.y, id.z);    
+    int index = indexFromCoords(id.x, numPointsX, id.y, numPointsY, id.z);    
     if (distance(spherePosition, points[index].position) <= sphereRadius)
     {
         pointsToAlter.Append(index);               
