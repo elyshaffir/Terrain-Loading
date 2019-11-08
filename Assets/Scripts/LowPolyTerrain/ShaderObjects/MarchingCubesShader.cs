@@ -2,7 +2,6 @@ using ComputeShading;
 using LowPolyTerrain.Chunk;
 using LowPolyTerrain.MeshGeneration;
 using LowPolyTerrain.MeshGeneration.DataStructures;
-using Unity.Mathematics;
 using UnityEngine;
 using static ComputeShading.ComputeShaderProperty;
 
@@ -17,7 +16,7 @@ namespace LowPolyTerrain.ShaderObjects
         ComputeBuffer triangleBuffer;
         ComputeBuffer triangleCountBuffer;
 
-        uint3[] cubesToMarch;
+        Vector3Int[] cubesToMarch;
 
         public MarchingCubesShader(TerrainChunkMeshGenerator generator) :
             base(marchingCubesGeneratorShader,
@@ -26,7 +25,7 @@ namespace LowPolyTerrain.ShaderObjects
             this.generator = generator;
         }
 
-        public void SetCubesToMarch(uint3[] cubesToMarch)
+        public void SetCubesToMarch(Vector3Int[] cubesToMarch)
         {
             this.cubesToMarch = cubesToMarch;
         }

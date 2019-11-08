@@ -44,38 +44,35 @@ int getCubeIndex(Point cubeCorners[8]) {
 [numthreads(numThreadsMarchCubes, numThreadsMarchCubes, numThreadsMarchCubes)]
 void MarchCubes(uint3 id : SV_DispatchThreadID)
 {
-	uint cubeToMarchIndex = indexFromCoords(id.x, numPointsX, id.y, numPointsY, id.z);
-	if (cubeToMarchIndex < (uint)cubesToMarch.Length)
+	uint cubeToMarchIndex = indexFromCoords(id.x, numPointsX, id.y, numPointsY, id.z);	
+	uint3 cubeToMarch = cubesToMarch[cubeToMarchIndex];
+	Point cubeCorners[8] = {
+		points[indexFromCoords(cubeToMarch.x, numPointsX, cubeToMarch.y, numPointsY, cubeToMarch.z)],
+		points[indexFromCoords(cubeToMarch.x + 1, numPointsX, cubeToMarch.y, numPointsY, cubeToMarch.z)],
+		points[indexFromCoords(cubeToMarch.x + 1, numPointsX, cubeToMarch.y, numPointsY, cubeToMarch.z + 1)],
+		points[indexFromCoords(cubeToMarch.x, numPointsX, cubeToMarch.y, numPointsY, cubeToMarch.z + 1)],
+		points[indexFromCoords(cubeToMarch.x, numPointsX, cubeToMarch.y + 1, numPointsY, cubeToMarch.z)],
+		points[indexFromCoords(cubeToMarch.x + 1, numPointsX, cubeToMarch.y + 1, numPointsY, cubeToMarch.z)],
+		points[indexFromCoords(cubeToMarch.x + 1, numPointsX, cubeToMarch.y + 1, numPointsY, cubeToMarch.z + 1)],
+		points[indexFromCoords(cubeToMarch.x, numPointsX, cubeToMarch.y + 1, numPointsY, cubeToMarch.z + 1)]};
+
+	int cubeIndex = getCubeIndex(cubeCorners);
+
+	for (int i = 0; triangulation[cubeIndex][i] != -1; i += 3)
 	{
-		uint3 cubeToMarch = cubesToMarch[cubeToMarchIndex];
-		Point cubeCorners[8] = {
-			points[indexFromCoords(cubeToMarch.x, numPointsX, cubeToMarch.y, numPointsY, cubeToMarch.z)],
-			points[indexFromCoords(cubeToMarch.x + 1, numPointsX, cubeToMarch.y, numPointsY, cubeToMarch.z)],
-			points[indexFromCoords(cubeToMarch.x + 1, numPointsX, cubeToMarch.y, numPointsY, cubeToMarch.z + 1)],
-			points[indexFromCoords(cubeToMarch.x, numPointsX, cubeToMarch.y, numPointsY, cubeToMarch.z + 1)],
-			points[indexFromCoords(cubeToMarch.x, numPointsX, cubeToMarch.y + 1, numPointsY, cubeToMarch.z)],
-			points[indexFromCoords(cubeToMarch.x + 1, numPointsX, cubeToMarch.y + 1, numPointsY, cubeToMarch.z)],
-			points[indexFromCoords(cubeToMarch.x + 1, numPointsX, cubeToMarch.y + 1, numPointsY, cubeToMarch.z + 1)],
-			points[indexFromCoords(cubeToMarch.x, numPointsX, cubeToMarch.y + 1, numPointsY, cubeToMarch.z + 1)]};
+		int a0 = cornerIndexAFromEdge[triangulation[cubeIndex][i]];
+		int b0 = cornerIndexBFromEdge[triangulation[cubeIndex][i]];
 
-		int cubeIndex = getCubeIndex(cubeCorners);
+		int a1 = cornerIndexAFromEdge[triangulation[cubeIndex][i + 1]];
+		int b1 = cornerIndexBFromEdge[triangulation[cubeIndex][i + 1]];
 
-		for (int i = 0; triangulation[cubeIndex][i] != -1; i += 3)
-		{
-			int a0 = cornerIndexAFromEdge[triangulation[cubeIndex][i]];
-			int b0 = cornerIndexBFromEdge[triangulation[cubeIndex][i]];
+		int a2 = cornerIndexAFromEdge[triangulation[cubeIndex][i + 2]];
+		int b2 = cornerIndexBFromEdge[triangulation[cubeIndex][i + 2]];
 
-			int a1 = cornerIndexAFromEdge[triangulation[cubeIndex][i + 1]];
-			int b1 = cornerIndexBFromEdge[triangulation[cubeIndex][i + 1]];
-
-			int a2 = cornerIndexAFromEdge[triangulation[cubeIndex][i + 2]];
-			int b2 = cornerIndexBFromEdge[triangulation[cubeIndex][i + 2]];
-
-			Triangle tri;
-			tri.vertexA = interpolateVerts(cubeCorners[a0], cubeCorners[b0]);
-			tri.vertexB = interpolateVerts(cubeCorners[a1], cubeCorners[b1]);
-			tri.vertexC = interpolateVerts(cubeCorners[a2], cubeCorners[b2]);
-			triangles.Append(tri);			
-		}		
+		Triangle tri;
+		tri.vertexA = interpolateVerts(cubeCorners[a0], cubeCorners[b0]);
+		tri.vertexB = interpolateVerts(cubeCorners[a1], cubeCorners[b1]);
+		tri.vertexC = interpolateVerts(cubeCorners[a2], cubeCorners[b2]);
+		triangles.Append(tri);			
 	}	
 }

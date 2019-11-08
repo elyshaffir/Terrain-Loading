@@ -1,7 +1,6 @@
 using ComputeShading;
 using LowPolyTerrain.Chunk;
 using LowPolyTerrain.MeshGeneration;
-using Unity.Mathematics;
 using UnityEngine;
 using static ComputeShading.ComputeShaderProperty;
 
@@ -17,18 +16,12 @@ namespace LowPolyTerrain.ShaderObjects
         ComputeBuffer cubesToMarchBuffer;
         ComputeBuffer cubesToMarchCountBuffer;
 
-        uint[] relevantCubeCorners;
-
-        public PrepareRelevantCubesShader(TerrainChunkMeshGenerator generator) :
+        public PrepareRelevantCubesShader(TerrainChunkMeshGenerator generator, ComputeBuffer relevantCubeCornersBuffer) :
             base(prepareRelevantCubesShader,
                 prepareRelevantCubesShader.FindKernel("PrepareRelevantCubes"))
         {
             this.generator = generator;
-        }
-
-        void SetRelevantCubeCorners(uint[] relevantCubeCorners)
-        {
-            this.relevantCubeCorners = relevantCubeCorners;
+            this.relevantCubeCornersBuffer = relevantCubeCornersBuffer;
         }
 
         protected override ComputeShaderProperty[] GetProperties()
@@ -41,13 +34,11 @@ namespace LowPolyTerrain.ShaderObjects
 
         public override void SetBuffers()
         {
-            relevantCubeCornersBuffer = new ComputeBuffer(generator.points.Length, sizeof(uint));
-            relevantCubeCornersBuffer.SetData(relevantCubeCorners);
             cubesToMarchBuffer = new ComputeBuffer(generator.points.Length, sizeof(uint) * 3, ComputeBufferType.Append);
             cubesToMarchBuffer.SetCounterValue(0);
             cubesToMarchCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
 
-            SetBuffer("relevantCubeCorners", relevantCubeCornersBuffer);
+            SetBuffer("relevantCubeCorners", relevantCubeCornersBuffer, false);
             SetBuffer("cubesToMarch", cubesToMarchBuffer);
             AddBuffer(cubesToMarchCountBuffer);
         }
@@ -66,14 +57,14 @@ namespace LowPolyTerrain.ShaderObjects
             ComputeBuffer.CopyCount(cubesToMarchBuffer, cubesToMarchCountBuffer, 0);
             uint[] cubesToMarchCount = new uint[1] { 0 };
             cubesToMarchCountBuffer.GetData(cubesToMarchCount);
-            uint3[] cubesToMarch = new uint3[cubesToMarchCount[0]];
+            Vector3Int[] cubesToMarch = new Vector3Int[cubesToMarchCount[0]];
             cubesToMarchBuffer.GetData(cubesToMarch);
             generator.marchingCubesShader.SetCubesToMarch(cubesToMarch);
+            generator.surfaceLevelShader.SetRelevant(cubesToMarch.Length > 0 && cubesToMarch.Length != generator.points.Length);
         }
 
-        public void Execute(uint[] relevantCubeCorners)
+        public void Execute()
         {
-            SetRelevantCubeCorners(relevantCubeCorners);
             SetBuffers();
             Dispatch();
             GetData();

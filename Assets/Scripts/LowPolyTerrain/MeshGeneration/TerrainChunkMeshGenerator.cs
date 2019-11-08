@@ -28,7 +28,7 @@ namespace LowPolyTerrain.MeshGeneration
             GetPointsToAlterShader.getPointsToAlterShader = getPointsToAlterShader;
             PrepareRelevantCubesShader.prepareRelevantCubesShader = prepareRelevantCubesShader;
 
-            SurfaceLevelShader.seed = Random.Range(-1000000f, 1000000f);
+            SurfaceLevelShader.seed = 12;//Random.Range(-1000000f, 1000000f);
         }
 
         public TerrainChunkMeshGenerator(TerrainChunkIndex index)

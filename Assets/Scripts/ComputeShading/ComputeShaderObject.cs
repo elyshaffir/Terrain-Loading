@@ -24,10 +24,13 @@ namespace ComputeShading
             usedBuffers.Add(buffer);
         }
 
-        protected void SetBuffer(string name, ComputeBuffer buffer)
+        protected void SetBuffer(string name, ComputeBuffer buffer, bool release = true)
         {
             shader.SetBuffer(shaderKernel, name, buffer);
-            AddBuffer(buffer);
+            if (release)
+            {
+                AddBuffer(buffer);
+            }
         }
 
         public abstract void Dispatch();

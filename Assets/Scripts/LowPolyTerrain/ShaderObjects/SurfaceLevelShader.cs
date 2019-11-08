@@ -16,10 +16,6 @@ namespace LowPolyTerrain.ShaderObjects
         readonly TerrainChunkMeshGenerator generator;
 
         ComputeBuffer outputPoints;
-        ComputeBuffer relevantBuffer;
-        ComputeBuffer irrelevantBuffer;
-        ComputeBuffer relevantCountBuffer;
-        ComputeBuffer irrelevantCountBuffer;
         ComputeBuffer relevantCubeCornersBuffer;
 
         uint[] relevantCubeCorners;
@@ -59,27 +55,13 @@ namespace LowPolyTerrain.ShaderObjects
             generator.points = new Point[generator.constraint.GetVolume()];
             outputPoints = new ComputeBuffer(generator.points.Length, Point.StructSize);
 
-            relevantBuffer = new ComputeBuffer(
-                generator.points.Length, sizeof(int), ComputeBufferType.Append);
-            relevantBuffer.SetCounterValue(0);
-            relevantCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
-
-            irrelevantBuffer = new ComputeBuffer(
-                generator.points.Length, sizeof(int), ComputeBufferType.Append);
-            irrelevantCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
-            irrelevantBuffer.SetCounterValue(0);
-
             relevantCubeCorners = new uint[generator.points.Length];
             Array.Clear(relevantCubeCorners, 0, relevantCubeCorners.Length);
             relevantCubeCornersBuffer = new ComputeBuffer(generator.points.Length, sizeof(uint));
             relevantCubeCornersBuffer.SetData(relevantCubeCorners);
 
             SetBuffer("points", outputPoints);
-            SetBuffer("relevant", relevantBuffer);
-            SetBuffer("irrelevant", irrelevantBuffer);
             SetBuffer("relevantCubeCorners", relevantCubeCornersBuffer);
-            AddBuffer(relevantCountBuffer);
-            AddBuffer(irrelevantCountBuffer);
         }
 
         public override void Dispatch()
@@ -95,19 +77,14 @@ namespace LowPolyTerrain.ShaderObjects
         {
             outputPoints.GetData(generator.points);
 
-            ComputeBuffer.CopyCount(relevantBuffer, relevantCountBuffer, 0);
-            int[] relevantCount = new int[1] { 0 };
-            relevantCountBuffer.GetData(relevantCount);
-
-            ComputeBuffer.CopyCount(irrelevantBuffer, irrelevantCountBuffer, 0);
-            int[] irrelevantCount = new int[1] { 0 };
-            irrelevantCountBuffer.GetData(irrelevantCount);
-
             relevantCubeCornersBuffer.GetData(relevantCubeCorners);
-            PrepareRelevantCubesShader prepareRelevantCubesShader = new PrepareRelevantCubesShader(generator);
-            prepareRelevantCubesShader.Execute(relevantCubeCorners);
+            PrepareRelevantCubesShader prepareRelevantCubesShader = new PrepareRelevantCubesShader(generator, relevantCubeCornersBuffer);
+            prepareRelevantCubesShader.Execute();
+        }
 
-            relevant = relevantCount[0] != 0 && irrelevantCount[0] != generator.points.Length;
+        public void SetRelevant(bool relevant)
+        {
+            this.relevant = relevant;
         }
 
         public bool IsRelevant()

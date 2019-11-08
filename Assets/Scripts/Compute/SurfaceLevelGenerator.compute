@@ -6,8 +6,6 @@
 static const int numThreadsSurfaceLevel = 5;
 
 RWStructuredBuffer<Point> points;
-AppendStructuredBuffer<int> relevant;
-AppendStructuredBuffer<int> irrelevant;
 RWStructuredBuffer<uint> relevantCubeCorners;
 
 uint numPointsX;
@@ -30,7 +28,7 @@ float offsetNoise;
 float isoLevel;
 
 float generateNoise(float3 pos)
-{	
+{
 	float noise = 0;
 	float frequency = noiseScale / 100;	
 	float amplitude = 1;
@@ -103,12 +101,9 @@ void GenerateSurfaceLevel(uint3 id : SV_DispatchThreadID)
 	p.position = id; // Local position in chunk
 	p.surfaceLevel = generatedNoise - pos.y;
 		
-	if (abs(p.surfaceLevel - isoLevel) < 1.5) // Finding optimal number will create an optimal marching amount, if holes appear enlarge this number
-	{
-		relevant.Append(1);
+	if (abs(p.surfaceLevel - isoLevel) < 1.6) // Finding optimal number will create an optimal marching amount, if holes appear enlarge this number
+	{		
 		AddRelevantCubes(id);		
-	} else {
-		irrelevant.Append(1);
 	}
 	p.onEdges = calculateOnEdges(id.x, numPointsX, id.y, numPointsY, id.z, numPointsZ);
 	points[index] = p;
