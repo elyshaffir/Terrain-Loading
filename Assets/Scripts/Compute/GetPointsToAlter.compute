@@ -10,6 +10,7 @@ AppendStructuredBuffer<int> pointsToAlter;
 int numPointsX;
 int numPointsY;
 
+float3 chunkPosition;
 float sphereRadius;
 float3 spherePosition;
 
@@ -17,7 +18,7 @@ float3 spherePosition;
 void GetPointsToAlter(uint3 id : SV_DispatchThreadID)
 {
     int index = indexFromCoords(id.x, numPointsX, id.y, numPointsY, id.z);    
-    if (distance(spherePosition, points[index].position) <= sphereRadius)
+    if (distance(spherePosition, points[index].position - chunkPosition) <= sphereRadius)
     {
         pointsToAlter.Append(index);               
     }    

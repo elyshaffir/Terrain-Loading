@@ -39,6 +39,7 @@ namespace LowPolyTerrain.ShaderObjects
             return new ComputeShaderProperty[] {
                 new ComputeShaderIntProperty("numPointsX", generator.constraint.scale.x * TerrainChunk.ChunkSizeInCubes.x),
                 new ComputeShaderIntProperty("numPointsY", generator.constraint.scale.y * TerrainChunk.ChunkSizeInCubes.y),
+                new ComputeShaderVector3Property("chunkPosition", generator.constraint.position),
                 new ComputeShaderFloatProperty("sphereRadius", sphereRadius),
                 new ComputeShaderVector3Property("spherePosition", spherePosition)
             };
@@ -46,8 +47,7 @@ namespace LowPolyTerrain.ShaderObjects
 
         public override void SetBuffers()
         {
-            pointsToAlterBuffer = new ComputeBuffer(
-                            generator.points.Length, sizeof(int), ComputeBufferType.Append);
+            pointsToAlterBuffer = new ComputeBuffer(generator.points.Length, sizeof(int), ComputeBufferType.Append);
             pointsToAlterBuffer.SetCounterValue(0);
             pointsToAlterCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
             inputPoints = new ComputeBuffer(generator.points.Length, Point.StructSize);

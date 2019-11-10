@@ -35,7 +35,7 @@ namespace LowPolyTerrain.ShaderObjects
             return new ComputeShaderProperty[] {
                 new ComputeShaderIntProperty("numPointsX", generator.constraint.scale.x * TerrainChunk.ChunkSizeInPoints.x),
                 new ComputeShaderIntProperty("numPointsY", generator.constraint.scale.y * TerrainChunk.ChunkSizeInPoints.y),
-                new ComputeShaderFloatProperty("isoLevel", TerrainChunkMeshGenerator.IsoLevel)
+                new ComputeShaderFloatProperty("isoLevel", SurfaceLevelShader.isoLevel)
             };
         }
 
@@ -61,7 +61,7 @@ namespace LowPolyTerrain.ShaderObjects
         public override void Dispatch()
         {
             Dispatch(
-                cubesToMarch.Length,
+                Mathf.CeilToInt(cubesToMarch.Length / 5f),
                 1,
                 1,
                 GetProperties());

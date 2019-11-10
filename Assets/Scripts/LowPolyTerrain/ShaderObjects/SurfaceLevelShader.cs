@@ -12,6 +12,7 @@ namespace LowPolyTerrain.ShaderObjects
     {
         public static ComputeShader surfaceLevelGeneratorShader;
         public static float seed;
+        public static float isoLevel;
 
         readonly TerrainChunkMeshGenerator generator;
 
@@ -46,7 +47,7 @@ namespace LowPolyTerrain.ShaderObjects
                 new ComputeShaderFloatProperty("hardFloor", 1f),
                 new ComputeShaderFloatProperty("hardFloorWeight", 37f),
                 new ComputeShaderFloatProperty("offsetNoise", seed),
-                new ComputeShaderFloatProperty("isoLevel", TerrainChunkMeshGenerator.IsoLevel)
+                new ComputeShaderFloatProperty("isoLevel", isoLevel)
             };
         }
 

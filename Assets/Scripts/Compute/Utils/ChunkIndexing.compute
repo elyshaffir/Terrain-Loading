@@ -8,9 +8,9 @@ uint indexFromCoordsInCubes(uint x, uint numPointsX, uint y, uint numPointsY, ui
     return indexFromCoords(x, numPointsX - 1, y, numPointsY - 1, z);
 }
 
-float3 calculateOnEdges(uint x, uint numPointsX, uint y, uint numPointsY, uint z, uint numPointsZ)
+int3 calculateOnEdges(uint x, uint numPointsX, uint y, uint numPointsY, uint z, uint numPointsZ)
 {
-    float3 onEdges = float3(0, 0, 0);
+    int3 onEdges = int3(0, 0, 0);
     if (x + 1 == numPointsX)
     {
         onEdges.x = 1;
