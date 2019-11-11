@@ -34,7 +34,7 @@ namespace LowPolyTerrain.ShaderObjects
 
         public override void SetBuffers()
         {
-            cubesToMarchBuffer = new ComputeBuffer(generator.points.Length, sizeof(uint) * 3, ComputeBufferType.Append);
+            cubesToMarchBuffer = new ComputeBuffer(generator.constraint.GetVolume(), sizeof(uint) * 3, ComputeBufferType.Append);
             cubesToMarchBuffer.SetCounterValue(0);
             cubesToMarchCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
 
@@ -57,10 +57,8 @@ namespace LowPolyTerrain.ShaderObjects
             ComputeBuffer.CopyCount(cubesToMarchBuffer, cubesToMarchCountBuffer, 0);
             uint[] cubesToMarchCount = new uint[1] { 0 };
             cubesToMarchCountBuffer.GetData(cubesToMarchCount);
-            Vector3Int[] cubesToMarch = new Vector3Int[cubesToMarchCount[0]];
-            cubesToMarchBuffer.GetData(cubesToMarch);
-            generator.marchingCubesShader.SetCubesToMarch(cubesToMarch);
-            generator.surfaceLevelShader.SetRelevant(cubesToMarch.Length > 0 && cubesToMarch.Length != generator.points.Length);
+            generator.marchingCubesShader.SetCubesToMarch(cubesToMarchBuffer, cubesToMarchCount[0]);
+            generator.surfaceLevelShader.SetRelevant(cubesToMarchCount[0] > 0 && cubesToMarchCount[0] != generator.constraint.GetVolume());
         }
 
         public void Execute()
@@ -68,7 +66,7 @@ namespace LowPolyTerrain.ShaderObjects
             SetBuffers();
             Dispatch();
             GetData();
-            Release();
+            // Release();
         }
     }
 }

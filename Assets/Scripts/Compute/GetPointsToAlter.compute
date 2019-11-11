@@ -3,23 +3,63 @@
 #include "Utils/ChunkIndexing.compute"
 
 static const int numThreadsGetPointsToAlter = 5;
-
-StructuredBuffer<Point> points;
-AppendStructuredBuffer<int> pointsToAlter;
+RWStructuredBuffer<uint> relevantCubeCorners;
+RWStructuredBuffer<Point> points;
 
 int numPointsX;
 int numPointsY;
 
+float power;
 float3 chunkPosition;
 float sphereRadius;
 float3 spherePosition;
+
+void AddCube(uint3 cube)
+{
+    uint index = indexFromCoordsInCubes(cube.x, numPointsX, cube.y, numPointsY, cube.z);
+    relevantCubeCorners[index] = 1;
+}
+
+void AddRelevantCubes(uint3 id)
+{
+    AddCube(id);
+    if (id.x > 0)
+    {
+        AddCube(uint3(id.x - 1, id.y, id.z));
+        if (id.y > 0)
+        {
+            AddCube(uint3(id.x - 1, id.y - 1, id.z));
+            if (id.z > 0)
+            {
+                AddCube(uint3(id.x - 1, id.y - 1, id.z - 1));
+            }
+        }
+        if (id.z > 0)
+        {
+            AddCube(uint3(id.x - 1, id.y, id.z - 1));
+        }
+    }
+    if (id.y > 0)
+    {
+        AddCube(uint3(id.x, id.y - 1, id.z));
+        if (id.z > 0)
+        {
+            AddCube(uint3(id.x, id.y - 1, id.z - 1));
+        }
+    }
+    if (id.z > 0)
+    {
+        AddCube(uint3(id.x, id.y, id.z - 1));
+    }
+}
 
 [numthreads(numThreadsGetPointsToAlter, numThreadsGetPointsToAlter, numThreadsGetPointsToAlter)]
 void GetPointsToAlter(uint3 id : SV_DispatchThreadID)
 {
     int index = indexFromCoords(id.x, numPointsX, id.y, numPointsY, id.z);    
-    if (distance(spherePosition, points[index].position - chunkPosition) <= sphereRadius)
+    if (distance(spherePosition, points[index].position + chunkPosition) <= sphereRadius)
     {
-        pointsToAlter.Append(index);               
+        points[index].surfaceLevel += power;
+        AddRelevantCubes(id);
     }    
 }

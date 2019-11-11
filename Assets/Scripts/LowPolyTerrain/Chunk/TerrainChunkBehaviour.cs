@@ -11,5 +11,10 @@ namespace LowPolyTerrain.Chunk
         {
             chunk.Alter(spherePosition, sphereRadius, power, additionalIndices);
         }
+
+        void OnDestroy()
+        {
+            chunk.Destroy();
+        }
     }
 }

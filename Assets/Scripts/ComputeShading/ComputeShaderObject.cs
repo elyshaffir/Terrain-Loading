@@ -46,7 +46,7 @@ namespace ComputeShading
 
         public abstract void GetData();
 
-        public void Release()
+        public virtual void Release()
         {
             foreach (ComputeBuffer usedBuffer in usedBuffers)
             {

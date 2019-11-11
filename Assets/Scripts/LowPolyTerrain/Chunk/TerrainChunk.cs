@@ -36,7 +36,6 @@ namespace LowPolyTerrain.Chunk
         public bool PhaseTwo()
         {
             meshGenerator.surfaceLevelShader.GetData();
-            meshGenerator.surfaceLevelShader.Release();
             return meshGenerator.ApplyAlterations() || meshGenerator.surfaceLevelShader.IsRelevant();
         }
 
@@ -62,6 +61,7 @@ namespace LowPolyTerrain.Chunk
 
         public void Destroy()
         {
+            meshGenerator.surfaceLevelShader.Release();
             MonoBehaviour.Destroy(terrainObject);
         }
     }

@@ -1,7 +1,6 @@
 using ComputeShading;
 using LowPolyTerrain.Chunk;
 using LowPolyTerrain.MeshGeneration;
-using LowPolyTerrain.MeshGeneration.DataStructures;
 using UnityEngine;
 using static ComputeShading.ComputeShaderProperty;
 
@@ -13,13 +12,11 @@ namespace LowPolyTerrain.ShaderObjects
 
         readonly TerrainChunkMeshGenerator generator;
 
-        ComputeBuffer pointsToAlterBuffer;
-        ComputeBuffer pointsToAlterCountBuffer;
-        ComputeBuffer inputPoints;
+        ComputeBuffer relevantCubeCornersBuffer;
+        PrepareRelevantCubesShader prepareRelevantCubesShader;
 
         float sphereRadius;
         Vector3 spherePosition;
-        int[] pointsToAlter;
 
         public GetPointsToAlterShader(TerrainChunkMeshGenerator generator) :
             base(getPointsToAlterShader,
@@ -39,6 +36,7 @@ namespace LowPolyTerrain.ShaderObjects
             return new ComputeShaderProperty[] {
                 new ComputeShaderIntProperty("numPointsX", generator.constraint.scale.x * TerrainChunk.ChunkSizeInCubes.x),
                 new ComputeShaderIntProperty("numPointsY", generator.constraint.scale.y * TerrainChunk.ChunkSizeInCubes.y),
+                new ComputeShaderFloatProperty("power", 1f),
                 new ComputeShaderVector3Property("chunkPosition", generator.constraint.position),
                 new ComputeShaderFloatProperty("sphereRadius", sphereRadius),
                 new ComputeShaderVector3Property("spherePosition", spherePosition)
@@ -47,15 +45,9 @@ namespace LowPolyTerrain.ShaderObjects
 
         public override void SetBuffers()
         {
-            pointsToAlterBuffer = new ComputeBuffer(generator.points.Length, sizeof(int), ComputeBufferType.Append);
-            pointsToAlterBuffer.SetCounterValue(0);
-            pointsToAlterCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
-            inputPoints = new ComputeBuffer(generator.points.Length, Point.StructSize);
-            inputPoints.SetData(generator.points);
-
-            SetBuffer("pointsToAlter", pointsToAlterBuffer);
-            SetBuffer("points", inputPoints);
-            AddBuffer(pointsToAlterCountBuffer);
+            relevantCubeCornersBuffer = new ComputeBuffer(generator.constraint.GetVolume(), sizeof(uint)); // if the initial value is not set to 0 it might pose a problem
+            SetBuffer("points", generator.surfaceLevelShader.pointsBuffer, false);
+            SetBuffer("relevantCubeCorners", relevantCubeCornersBuffer);
         }
 
         public override void Dispatch()
@@ -69,11 +61,19 @@ namespace LowPolyTerrain.ShaderObjects
 
         public override void GetData()
         {
-            ComputeBuffer.CopyCount(pointsToAlterBuffer, pointsToAlterCountBuffer, 0);
-            int[] pointsToAlterCount = new int[1] { 0 };
-            pointsToAlterCountBuffer.GetData(pointsToAlterCount);
-            pointsToAlter = new int[pointsToAlterCount[0]];
-            pointsToAlterBuffer.GetData(pointsToAlter);
+            prepareRelevantCubesShader = new PrepareRelevantCubesShader(generator, relevantCubeCornersBuffer);
+            // prepareRelevantCubesShader.Execute();
+
+            // Create a new version of PrepareRelevantCubesShader which adds
+            // the new relevant cubes to the old ones calculated at generation
+            // -------- OR
+            // dont dispose of cubesToMarch and it's counter and use the same shader!
+        }
+
+        public override void Release()
+        {
+            base.Release();
+            prepareRelevantCubesShader.Release();
         }
 
         public int[] Execute(float sphereRadius, Vector3 spherePosition)
@@ -83,7 +83,7 @@ namespace LowPolyTerrain.ShaderObjects
             Dispatch();
             GetData();
             Release();
-            return pointsToAlter;
+            return new int[1];
         }
     }
 }

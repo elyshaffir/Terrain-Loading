@@ -15,8 +15,9 @@ namespace LowPolyTerrain.ShaderObjects
 
         ComputeBuffer triangleBuffer;
         ComputeBuffer triangleCountBuffer;
+        ComputeBuffer cubesToMarchBuffer;
 
-        Vector3Int[] cubesToMarch;
+        uint cubesToMarchCount;
 
         public MarchingCubesShader(TerrainChunkMeshGenerator generator) :
             base(marchingCubesGeneratorShader,
@@ -25,9 +26,10 @@ namespace LowPolyTerrain.ShaderObjects
             this.generator = generator;
         }
 
-        public void SetCubesToMarch(Vector3Int[] cubesToMarch)
+        public void SetCubesToMarch(ComputeBuffer cubesToMarchBuffer, uint cubesToMarchCount)
         {
-            this.cubesToMarch = cubesToMarch;
+            this.cubesToMarchBuffer = cubesToMarchBuffer;
+            this.cubesToMarchCount = cubesToMarchCount;
         }
 
         protected override ComputeShaderProperty[] GetProperties()
@@ -41,27 +43,21 @@ namespace LowPolyTerrain.ShaderObjects
 
         public override void SetBuffers()
         {
-            ComputeBuffer inputPoints = new ComputeBuffer(generator.points.Length, Point.StructSize);
-            inputPoints.SetData(generator.points);
-
-            ComputeBuffer cubesToMarchBuffer = new ComputeBuffer(TerrainChunk.ChunkSizeInPoints.x * TerrainChunk.ChunkSizeInPoints.y * TerrainChunk.ChunkSizeInPoints.z, sizeof(uint) * 3);
-            cubesToMarchBuffer.SetData(cubesToMarch);
-
             triangleBuffer = new ComputeBuffer(
                 generator.constraint.GetVolume(), Triangle.StructSize, ComputeBufferType.Append);
             triangleBuffer.SetCounterValue(0);
             triangleCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
 
             SetBuffer("triangles", triangleBuffer);
-            SetBuffer("points", inputPoints);
-            SetBuffer("cubesToMarch", cubesToMarchBuffer);
+            SetBuffer("points", generator.surfaceLevelShader.pointsBuffer, false);
+            SetBuffer("cubesToMarch", cubesToMarchBuffer, false);
             AddBuffer(triangleCountBuffer);
         }
 
         public override void Dispatch()
         {
             Dispatch(
-                Mathf.CeilToInt(cubesToMarch.Length / 5f),
+                Mathf.CeilToInt((cubesToMarchCount) / 5f),
                 1,
                 1,
                 GetProperties());

@@ -12,7 +12,6 @@ namespace LowPolyTerrain.MeshGeneration
         public Mesh mesh;
         public readonly TerrainChunkConstraint constraint;
         public Triangle[] triangles;
-        public Point[] points;
         public SurfaceLevelShader surfaceLevelShader;
         public MarchingCubesShader marchingCubesShader;
 
@@ -46,10 +45,13 @@ namespace LowPolyTerrain.MeshGeneration
         {
             Dictionary<Vector3, float> alterations = new Dictionary<Vector3, float>(new Vector3Comparer());
             int[] pointsToAlter = getPointsToAlterShader.Execute(sphereRadius, spherePosition);
+            // The alterations need to be brought to the CPU any way because the saving of alterations on the machine (to a file) cannot be done from the CPU
             foreach (int indexToAlter in pointsToAlter)
             {
-                points[indexToAlter].surfaceLevel += power;
-                alterations[points[indexToAlter].position] = points[indexToAlter].surfaceLevel;
+                // points[indexToAlter].surfaceLevel += power;                
+                alterations[points[indexToAlter].position + constraint.position] = points[indexToAlter].surfaceLevel;
+                // As last resort, there can be an array of onEdges for each generator for GetAdjacentToManipulate
+                // GetAdjacentToManipulate can also be calculated in the shader given the current chunk and in a simmilar way to the way relevantCubes is calculated (array[i] = 1)
                 index.GetAdjacentToManipulate(points[indexToAlter].onEdges, additionalIndices);
             }
             TerrainChunkLoadingManager.chunksWithPoints.Add(chunk);
@@ -63,15 +65,15 @@ namespace LowPolyTerrain.MeshGeneration
             {
                 return false;
             }
-            Dictionary<Vector3, int> pointIndices = new Dictionary<Vector3, int>();
-            for (int i = 0; i < points.Length; i++)
-            {
-                pointIndices.Add(points[i].position, i);
-            }
-            foreach (KeyValuePair<Vector3, float> alteration in alterations)
-            {
-                points[pointIndices[alteration.Key]].surfaceLevel = alteration.Value;
-            }
+            // Dictionary<Vector3, int> pointIndices = new Dictionary<Vector3, int>();
+            // for (int i = 0; i < points.Length; i++)
+            // {
+            //     pointIndices.Add(points[i].position, i);
+            // }
+            // foreach (KeyValuePair<Vector3, float> alteration in alterations)
+            // {
+            //     points[pointIndices[alteration.Key]].surfaceLevel = alteration.Value;
+            // }
             return true;
 
         }

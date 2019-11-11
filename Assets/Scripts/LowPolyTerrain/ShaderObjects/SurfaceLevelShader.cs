@@ -14,12 +14,13 @@ namespace LowPolyTerrain.ShaderObjects
         public static float seed;
         public static float isoLevel;
 
+        public ComputeBuffer pointsBuffer;
+
         readonly TerrainChunkMeshGenerator generator;
 
-        ComputeBuffer outputPoints;
         ComputeBuffer relevantCubeCornersBuffer;
+        PrepareRelevantCubesShader prepareRelevantCubesShader;
 
-        uint[] relevantCubeCorners;
         bool relevant;
 
         public SurfaceLevelShader(TerrainChunkMeshGenerator generator) :
@@ -53,15 +54,14 @@ namespace LowPolyTerrain.ShaderObjects
 
         public override void SetBuffers()
         {
-            generator.points = new Point[generator.constraint.GetVolume()];
-            outputPoints = new ComputeBuffer(generator.points.Length, Point.StructSize);
+            pointsBuffer = new ComputeBuffer(generator.constraint.GetVolume(), Point.StructSize);
 
-            relevantCubeCorners = new uint[generator.points.Length];
-            Array.Clear(relevantCubeCorners, 0, relevantCubeCorners.Length);
-            relevantCubeCornersBuffer = new ComputeBuffer(generator.points.Length, sizeof(uint));
-            relevantCubeCornersBuffer.SetData(relevantCubeCorners);
+            // relevantCubeCorners = new uint[generator.constraint.GetVolume()];
+            // Array.Clear(relevantCubeCorners, 0, relevantCubeCorners.Length);
+            relevantCubeCornersBuffer = new ComputeBuffer(generator.constraint.GetVolume(), sizeof(uint)); // if the initial value is not set to 0 it might pose a problem
+            // relevantCubeCornersBuffer.SetData(relevantCubeCorners);
 
-            SetBuffer("points", outputPoints);
+            SetBuffer("points", pointsBuffer);
             SetBuffer("relevantCubeCorners", relevantCubeCornersBuffer);
         }
 
@@ -76,11 +76,17 @@ namespace LowPolyTerrain.ShaderObjects
 
         public override void GetData()
         {
-            outputPoints.GetData(generator.points);
-
-            relevantCubeCornersBuffer.GetData(relevantCubeCorners);
-            PrepareRelevantCubesShader prepareRelevantCubesShader = new PrepareRelevantCubesShader(generator, relevantCubeCornersBuffer);
+            prepareRelevantCubesShader = new PrepareRelevantCubesShader(generator, relevantCubeCornersBuffer);
             prepareRelevantCubesShader.Execute();
+        }
+
+        public override void Release()
+        {
+            base.Release();
+            if (prepareRelevantCubesShader != null)
+            {
+                prepareRelevantCubesShader.Release();
+            }
         }
 
         public void SetRelevant(bool relevant)
