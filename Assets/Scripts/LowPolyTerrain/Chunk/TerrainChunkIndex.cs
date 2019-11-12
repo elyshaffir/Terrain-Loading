@@ -43,6 +43,50 @@ namespace LowPolyTerrain.Chunk
             return renderDistance / 2;
         }
 
+        public void GetEdgeChunks(int[] onEdges, HashSet<TerrainChunkIndex> additionalIndices)
+        {
+            for (int x = 0; x < 5; x += 5)
+            {
+                int xModifier = (x == 0) ? -1 : ((x == 5) ? 1 : 0);
+                if (xModifier != 0 && onEdges[x] == 1)
+                {
+                    additionalIndices.Add(new TerrainChunkIndex(x + xModifier, y, z));
+                }
+                for (int y = 1; y < 4; y += 4)
+                {
+                    int yModifier = (y == 1) ? -1 : ((y == 4) ? 1 : 0);
+                    if (yModifier != 0 && onEdges[y] == 1)
+                    {
+                        additionalIndices.Add(new TerrainChunkIndex(x, y + yModifier, z));
+                        if (xModifier != 0 && onEdges[x] == 1)
+                        {
+                            additionalIndices.Add(new TerrainChunkIndex(x + xModifier, y + yModifier, z));
+                        }
+                    }
+                    for (int z = 2; z < 3; z++)
+                    {
+                        int zModifier = (z == 2) ? -1 : ((z == 3) ? 1 : 0);
+                        if (zModifier != 0 && onEdges[z] == 1)
+                        {
+                            additionalIndices.Add(new TerrainChunkIndex(x, y, z + zModifier));
+                            if (yModifier != 0 && onEdges[y] == 1)
+                            {
+                                additionalIndices.Add(new TerrainChunkIndex(x, y + yModifier, z + zModifier));
+                                if (xModifier != 0 && onEdges[x] == 1)
+                                {
+                                    additionalIndices.Add(new TerrainChunkIndex(x + xModifier, y + yModifier, z + zModifier));
+                                }
+                            }
+                            if (xModifier != 0 && onEdges[x] == 1)
+                            {
+                                additionalIndices.Add(new TerrainChunkIndex(x + xModifier, y, z + zModifier));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         public void GetAdjacentToManipulate(Vector3 onEdges, HashSet<TerrainChunkIndex> additionalIndices)
         {
             if (onEdges.x != 0)

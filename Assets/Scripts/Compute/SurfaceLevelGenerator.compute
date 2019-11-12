@@ -104,7 +104,6 @@ void GenerateSurfaceLevel(uint3 id : SV_DispatchThreadID)
 	if (abs(p.surfaceLevel - isoLevel) < 1.6) // Finding optimal number will create an optimal marching amount, if holes appear enlarge this number
 	{		
 		AddRelevantCubes(id);		
-	}
-	p.onEdges = calculateOnEdges(id.x, numPointsX, id.y, numPointsY, id.z, numPointsZ);
+	}	
 	points[index] = p;
 }

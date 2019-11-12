@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using ComputeShading;
 using LowPolyTerrain.Chunk;
 using LowPolyTerrain.MeshGeneration;
@@ -13,10 +14,12 @@ namespace LowPolyTerrain.ShaderObjects
         readonly TerrainChunkMeshGenerator generator;
 
         ComputeBuffer relevantCubeCornersBuffer;
+        ComputeBuffer onEdgesBuffer;
         PrepareRelevantCubesShader prepareRelevantCubesShader;
 
         float sphereRadius;
         Vector3 spherePosition;
+        int[] onEdges;
 
         public GetPointsToAlterShader(TerrainChunkMeshGenerator generator) :
             base(getPointsToAlterShader,
@@ -36,6 +39,7 @@ namespace LowPolyTerrain.ShaderObjects
             return new ComputeShaderProperty[] {
                 new ComputeShaderIntProperty("numPointsX", generator.constraint.scale.x * TerrainChunk.ChunkSizeInCubes.x),
                 new ComputeShaderIntProperty("numPointsY", generator.constraint.scale.y * TerrainChunk.ChunkSizeInCubes.y),
+                new ComputeShaderIntProperty("numPointsZ", generator.constraint.scale.z * TerrainChunk.ChunkSizeInPoints.z),
                 new ComputeShaderFloatProperty("power", 1f),
                 new ComputeShaderVector3Property("chunkPosition", generator.constraint.position),
                 new ComputeShaderFloatProperty("sphereRadius", sphereRadius),
@@ -46,8 +50,10 @@ namespace LowPolyTerrain.ShaderObjects
         public override void SetBuffers()
         {
             relevantCubeCornersBuffer = new ComputeBuffer(generator.constraint.GetVolume(), sizeof(uint)); // if the initial value is not set to 0 it might pose a problem
+            onEdgesBuffer = new ComputeBuffer(6, sizeof(int));
             SetBuffer("points", generator.surfaceLevelShader.pointsBuffer, false);
             SetBuffer("relevantCubeCorners", relevantCubeCornersBuffer);
+            SetBuffer("onEdges", onEdgesBuffer);
         }
 
         public override void Dispatch()
@@ -68,6 +74,8 @@ namespace LowPolyTerrain.ShaderObjects
             // the new relevant cubes to the old ones calculated at generation
             // -------- OR
             // dont dispose of cubesToMarch and it's counter and use the same shader!
+            onEdges = new int[6];
+            onEdgesBuffer.GetData(onEdges);
         }
 
         public override void Release()
@@ -76,14 +84,14 @@ namespace LowPolyTerrain.ShaderObjects
             prepareRelevantCubesShader.Release();
         }
 
-        public int[] Execute(float sphereRadius, Vector3 spherePosition)
+        public void Execute(float sphereRadius, Vector3 spherePosition, TerrainChunkIndex index, HashSet<TerrainChunkIndex> additionalIndices)
         {
             SetSphere(sphereRadius, spherePosition);
             SetBuffers();
             Dispatch();
             GetData();
             Release();
-            return new int[1];
+            index.GetEdgeChunks(onEdges, additionalIndices);
         }
     }
 }

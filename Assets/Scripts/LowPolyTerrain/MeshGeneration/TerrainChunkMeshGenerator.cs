@@ -44,16 +44,16 @@ namespace LowPolyTerrain.MeshGeneration
         public Dictionary<Vector3, float> Alter(Vector3 spherePosition, float sphereRadius, float power, HashSet<TerrainChunkIndex> additionalIndices, TerrainChunk chunk)
         {
             Dictionary<Vector3, float> alterations = new Dictionary<Vector3, float>(new Vector3Comparer());
-            int[] pointsToAlter = getPointsToAlterShader.Execute(sphereRadius, spherePosition);
+            getPointsToAlterShader.Execute(sphereRadius, spherePosition, index, additionalIndices);
             // The alterations need to be brought to the CPU any way because the saving of alterations on the machine (to a file) cannot be done from the CPU
-            foreach (int indexToAlter in pointsToAlter)
-            {
-                // points[indexToAlter].surfaceLevel += power;                
-                alterations[points[indexToAlter].position + constraint.position] = points[indexToAlter].surfaceLevel;
-                // As last resort, there can be an array of onEdges for each generator for GetAdjacentToManipulate
-                // GetAdjacentToManipulate can also be calculated in the shader given the current chunk and in a simmilar way to the way relevantCubes is calculated (array[i] = 1)
-                index.GetAdjacentToManipulate(points[indexToAlter].onEdges, additionalIndices);
-            }
+            // foreach (int indexToAlter in pointsToAlter)
+            // {
+            //     // points[indexToAlter].surfaceLevel += power;                
+            //     alterations[points[indexToAlter].position + constraint.position] = points[indexToAlter].surfaceLevel;
+            //     // As last resort, there can be an array of onEdges for each generator for GetAdjacentToManipulate
+            //     // GetAdjacentToManipulate can also be calculated in the shader given the current chunk and in a simmilar way to the way relevantCubes is calculated (array[i] = 1)
+            //     index.GetAdjacentToManipulate(points[indexToAlter].onEdges, additionalIndices); // DONE!
+            // }
             TerrainChunkLoadingManager.chunksWithPoints.Add(chunk);
             return alterations;
         }

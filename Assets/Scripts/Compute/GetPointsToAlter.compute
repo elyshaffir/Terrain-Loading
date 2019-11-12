@@ -5,9 +5,20 @@
 static const int numThreadsGetPointsToAlter = 5;
 RWStructuredBuffer<uint> relevantCubeCorners;
 RWStructuredBuffer<Point> points;
+RWStructuredBuffer<int> onEdges;
+/*
+an array of 6 ints, the indices are:
+0: -x
+1: -y
+2: -z
+3: z
+4: y
+5: x
+*/
 
 int numPointsX;
 int numPointsY;
+int numPointsZ;
 
 float power;
 float3 chunkPosition;
@@ -53,6 +64,33 @@ void AddRelevantCubes(uint3 id)
     }
 }
 
+void CalculateEdges(uint3 id) {    
+    if (id.x == 0)
+    {
+        onEdges[0] = 1;
+    }
+    else if (id.x + 1 == numPointsX)
+    {
+        onEdges[5] = 1;
+    }
+    if (id.y == 0)
+    {
+        onEdges[1] = 1;
+    }
+    else if (id.y + 1 == numPointsY)
+    {
+        onEdges[4] = 1;
+    }
+    if (id.z == 0)
+    {
+        onEdges[2] = 1;
+    }
+    else if (id.z + 1 == numPointsZ)
+    {
+        onEdges[3] = 1;
+    }    
+}
+
 [numthreads(numThreadsGetPointsToAlter, numThreadsGetPointsToAlter, numThreadsGetPointsToAlter)]
 void GetPointsToAlter(uint3 id : SV_DispatchThreadID)
 {
@@ -61,5 +99,6 @@ void GetPointsToAlter(uint3 id : SV_DispatchThreadID)
     {
         points[index].surfaceLevel += power;
         AddRelevantCubes(id);
+        CalculateEdges(id);
     }    
 }

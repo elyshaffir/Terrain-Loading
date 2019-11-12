@@ -1,6 +1,5 @@
 struct Point
 {
     float3 position;
-    float surfaceLevel;
-    int3 onEdges;
+    float surfaceLevel;    
 };
