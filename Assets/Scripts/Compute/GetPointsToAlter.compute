@@ -100,10 +100,10 @@ void GetPointsToAlter(uint3 id : SV_DispatchThreadID)
     if (distance(spherePosition, points[index].position + chunkPosition) <= sphereRadius)
     {
         points[index].surfaceLevel += power;        
-        CalculateEdges(id);
+        CalculateEdges(id);        
     }
     if (abs(points[index].surfaceLevel - isoLevel) < 1.6) // Finding optimal number will create an optimal marching amount, if holes appear enlarge this number
     {
         AddRelevantCubes(id);
-    }
+    }    
 }

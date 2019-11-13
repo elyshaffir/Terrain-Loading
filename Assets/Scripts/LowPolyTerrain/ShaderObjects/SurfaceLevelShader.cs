@@ -58,7 +58,10 @@ namespace LowPolyTerrain.ShaderObjects
 
             // relevantCubeCorners = new uint[generator.constraint.GetVolume()];
             // Array.Clear(relevantCubeCorners, 0, relevantCubeCorners.Length);
-            relevantCubeCornersBuffer = new ComputeBuffer(generator.constraint.GetVolume(), sizeof(uint)); // if the initial value is not set to 0 it might pose a problem
+            relevantCubeCornersBuffer = new ComputeBuffer(generator.constraint.GetVolume(), sizeof(uint));
+            // if the initial value is not set to 0 it might pose a problem
+            // but even if the value in the array is random, worst case scenario
+            // the random value is 1 and an empty cube gets marched
             // relevantCubeCornersBuffer.SetData(relevantCubeCorners);
 
             SetBuffer("points", pointsBuffer);

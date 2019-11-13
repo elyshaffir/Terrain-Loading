@@ -53,7 +53,7 @@ namespace LowPolyTerrain.MeshGeneration
             //     // As last resort, there can be an array of onEdges for each generator for GetAdjacentToManipulate
             //     // GetAdjacentToManipulate can also be calculated in the shader given the current chunk and in a simmilar way to the way relevantCubes is calculated (array[i] = 1)
             //     index.GetAdjacentToManipulate(points[indexToAlter].onEdges, additionalIndices); // DONE!
-            // }
+            // }            
             if (surfaceLevelShader.IsRelevant())
             {
                 TerrainChunkLoadingManager.chunksWithPoints.Add(chunk);

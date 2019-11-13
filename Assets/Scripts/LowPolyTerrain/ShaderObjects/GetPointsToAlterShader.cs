@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ComputeShading;
 using LowPolyTerrain.Chunk;
@@ -37,8 +38,8 @@ namespace LowPolyTerrain.ShaderObjects
         protected override ComputeShaderProperty[] GetProperties()
         {
             return new ComputeShaderProperty[] {
-                new ComputeShaderIntProperty("numPointsX", generator.constraint.scale.x * TerrainChunk.ChunkSizeInCubes.x),
-                new ComputeShaderIntProperty("numPointsY", generator.constraint.scale.y * TerrainChunk.ChunkSizeInCubes.y),
+                new ComputeShaderIntProperty("numPointsX", generator.constraint.scale.x * TerrainChunk.ChunkSizeInPoints.x),
+                new ComputeShaderIntProperty("numPointsY", generator.constraint.scale.y * TerrainChunk.ChunkSizeInPoints.y),
                 new ComputeShaderIntProperty("numPointsZ", generator.constraint.scale.z * TerrainChunk.ChunkSizeInPoints.z),
                 new ComputeShaderFloatProperty("power", 1f),
                 new ComputeShaderVector3Property("chunkPosition", generator.constraint.position),
@@ -50,8 +51,13 @@ namespace LowPolyTerrain.ShaderObjects
 
         public override void SetBuffers()
         {
-            relevantCubeCornersBuffer = new ComputeBuffer(generator.constraint.GetVolume(), sizeof(uint)); // if the initial value is not set to 0 it might pose a problem
+            relevantCubeCornersBuffer = new ComputeBuffer(generator.constraint.GetVolume(), sizeof(uint)); // if the initial value is not set to 0 it might pose a problem            
+
             onEdgesBuffer = new ComputeBuffer(6, sizeof(int));
+            int[] onEdgesFill = new int[6]; // This seems to be necessary for some reason
+            Array.Clear(onEdgesFill, 0, onEdgesFill.Length);
+            onEdgesBuffer.SetData(onEdgesFill);
+
             SetBuffer("points", generator.surfaceLevelShader.pointsBuffer, false);
             SetBuffer("relevantCubeCorners", relevantCubeCornersBuffer);
             SetBuffer("onEdges", onEdgesBuffer);
@@ -60,9 +66,9 @@ namespace LowPolyTerrain.ShaderObjects
         public override void Dispatch()
         {
             Dispatch(
-                generator.constraint.scale.x * TerrainChunk.ChunkSizeInCubes.x / 5,
-                generator.constraint.scale.y * TerrainChunk.ChunkSizeInCubes.y / 5,
-                generator.constraint.scale.z * TerrainChunk.ChunkSizeInCubes.z / 5,
+                generator.constraint.scale.x * TerrainChunk.ChunkSizeInPoints.x / 5,
+                generator.constraint.scale.y * TerrainChunk.ChunkSizeInPoints.y / 5,
+                generator.constraint.scale.z * TerrainChunk.ChunkSizeInPoints.z / 5,
                 GetProperties());
         }
 
