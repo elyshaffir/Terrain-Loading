@@ -25,7 +25,7 @@ namespace LowPolyTerrain.MeshGeneration
             GetPointsToAlterShader.getPointsToAlterShader = getPointsToAlterShader;
             PrepareRelevantCubesShader.prepareRelevantCubesShader = prepareRelevantCubesShader;
 
-            SurfaceLevelShader.seed = Random.Range(-1000000f, 1000000f);
+            SurfaceLevelShader.seed = 12;//Random.Range(-1000000f, 1000000f);
             SurfaceLevelShader.isoLevel = -3.5f;
         }
 
@@ -54,7 +54,10 @@ namespace LowPolyTerrain.MeshGeneration
             //     // GetAdjacentToManipulate can also be calculated in the shader given the current chunk and in a simmilar way to the way relevantCubes is calculated (array[i] = 1)
             //     index.GetAdjacentToManipulate(points[indexToAlter].onEdges, additionalIndices); // DONE!
             // }
-            TerrainChunkLoadingManager.chunksWithPoints.Add(chunk);
+            if (surfaceLevelShader.IsRelevant())
+            {
+                TerrainChunkLoadingManager.chunksWithPoints.Add(chunk);
+            }
             return alterations;
         }
 

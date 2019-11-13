@@ -16,14 +16,16 @@ an array of 6 ints, the indices are:
 5: x
 */
 
-int numPointsX;
-int numPointsY;
-int numPointsZ;
+uint numPointsX;
+uint numPointsY;
+uint numPointsZ;
 
 float power;
 float3 chunkPosition;
 float sphereRadius;
 float3 spherePosition;
+
+float isoLevel;
 
 void AddCube(uint3 cube)
 {
@@ -97,8 +99,11 @@ void GetPointsToAlter(uint3 id : SV_DispatchThreadID)
     int index = indexFromCoords(id.x, numPointsX, id.y, numPointsY, id.z);    
     if (distance(spherePosition, points[index].position + chunkPosition) <= sphereRadius)
     {
-        points[index].surfaceLevel += power;
-        AddRelevantCubes(id);
+        points[index].surfaceLevel += power;        
         CalculateEdges(id);
-    }    
+    }
+    if (abs(points[index].surfaceLevel - isoLevel) < 1.6) // Finding optimal number will create an optimal marching amount, if holes appear enlarge this number
+    {
+        AddRelevantCubes(id);
+    }
 }

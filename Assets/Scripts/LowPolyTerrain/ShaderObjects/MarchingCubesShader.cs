@@ -1,3 +1,4 @@
+using System;
 using ComputeShading;
 using LowPolyTerrain.Chunk;
 using LowPolyTerrain.MeshGeneration;
@@ -50,7 +51,7 @@ namespace LowPolyTerrain.ShaderObjects
 
             SetBuffer("triangles", triangleBuffer);
             SetBuffer("points", generator.surfaceLevelShader.pointsBuffer, false);
-            SetBuffer("cubesToMarch", cubesToMarchBuffer, false);
+            SetBuffer("cubesToMarch", cubesToMarchBuffer);
             AddBuffer(triangleCountBuffer);
         }
 

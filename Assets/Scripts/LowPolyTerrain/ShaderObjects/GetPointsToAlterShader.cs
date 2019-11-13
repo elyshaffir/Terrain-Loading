@@ -43,7 +43,8 @@ namespace LowPolyTerrain.ShaderObjects
                 new ComputeShaderFloatProperty("power", 1f),
                 new ComputeShaderVector3Property("chunkPosition", generator.constraint.position),
                 new ComputeShaderFloatProperty("sphereRadius", sphereRadius),
-                new ComputeShaderVector3Property("spherePosition", spherePosition)
+                new ComputeShaderVector3Property("spherePosition", spherePosition),
+                new ComputeShaderFloatProperty("isoLevel", SurfaceLevelShader.isoLevel)
             };
         }
 
@@ -67,13 +68,11 @@ namespace LowPolyTerrain.ShaderObjects
 
         public override void GetData()
         {
+            // Perhaps use GenerateSurfaceLevel (or a simmilar version to it) that doesnt generate the noise,
+            // but just checks for relevant cubes on the already existing array of points (points is already modified here)
             prepareRelevantCubesShader = new PrepareRelevantCubesShader(generator, relevantCubeCornersBuffer);
-            // prepareRelevantCubesShader.Execute();
+            prepareRelevantCubesShader.Execute();
 
-            // Create a new version of PrepareRelevantCubesShader which adds
-            // the new relevant cubes to the old ones calculated at generation
-            // -------- OR
-            // dont dispose of cubesToMarch and it's counter and use the same shader!
             onEdges = new int[6];
             onEdgesBuffer.GetData(onEdges);
         }

@@ -40,7 +40,7 @@ namespace LowPolyTerrain
         void HandleTerrainControls()
         {
             ResizeTerrainSphere();
-            if (Input.GetMouseButton(0))
+            if (Input.GetMouseButtonUp(0))
             {
                 AlterTerrain(ALTERING_POWER);
             }
