@@ -101,9 +101,9 @@ void GetPointsToAlter(uint3 id : SV_DispatchThreadID)
     {
         points[index].surfaceLevel += power;        
         CalculateEdges(id);        
-    }
-    if (abs(points[index].surfaceLevel - isoLevel) < 1.6) // Finding optimal number will create an optimal marching amount, if holes appear enlarge this number
+    }    
+    if (points[index].surfaceLevel < isoLevel)
     {
         AddRelevantCubes(id);
-    }    
+    }
 }

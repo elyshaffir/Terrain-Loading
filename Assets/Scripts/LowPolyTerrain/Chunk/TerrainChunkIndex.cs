@@ -52,7 +52,7 @@ namespace LowPolyTerrain.Chunk
                 {
                     additionalIndices.Add(new TerrainChunkIndex(x + xModifier, y, z));
                 }
-                for (int yFlag = 1; yFlag <= 4; yFlag += 4)
+                for (int yFlag = 1; yFlag <= 4; yFlag += 3)
                 {
                     int yModifier = (yFlag == 1) ? -1 : ((yFlag == 4) ? 1 : 0);
                     if (yModifier != 0 && onEdges[yFlag] == 1)
