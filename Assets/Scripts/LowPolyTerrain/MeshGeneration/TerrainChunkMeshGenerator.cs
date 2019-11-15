@@ -14,8 +14,8 @@ namespace LowPolyTerrain.MeshGeneration
         public Triangle[] triangles;
         public SurfaceLevelShader surfaceLevelShader;
         public MarchingCubesShader marchingCubesShader;
+        public GetPointsToAlterShader getPointsToAlterShader;
 
-        GetPointsToAlterShader getPointsToAlterShader;
         TerrainChunkIndex index;
 
         public static void Init(ComputeShader surfaceLevelGeneratorShader, ComputeShader marchingCubesGeneratorShader, ComputeShader getPointsToAlterShader, ComputeShader prepareRelevantCubesShader)
@@ -36,7 +36,7 @@ namespace LowPolyTerrain.MeshGeneration
 
             surfaceLevelShader = new SurfaceLevelShader(this);
             marchingCubesShader = new MarchingCubesShader(this);
-            getPointsToAlterShader = new GetPointsToAlterShader(this);
+            getPointsToAlterShader = new GetPointsToAlterShader(this, TerrainChunkLoadingManager.GetCachedChunk(index));
 
             mesh = new Mesh();
         }

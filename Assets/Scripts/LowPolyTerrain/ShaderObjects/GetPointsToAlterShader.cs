@@ -12,6 +12,8 @@ namespace LowPolyTerrain.ShaderObjects
     {
         public static ComputeShader getPointsToAlterShader;
 
+        public ComputeBuffer alterationsBuffer;
+
         readonly TerrainChunkMeshGenerator generator;
 
         ComputeBuffer relevantCubeCornersBuffer;
@@ -22,11 +24,22 @@ namespace LowPolyTerrain.ShaderObjects
         Vector3 spherePosition;
         int[] onEdges;
 
-        public GetPointsToAlterShader(TerrainChunkMeshGenerator generator) :
+        public GetPointsToAlterShader(TerrainChunkMeshGenerator generator, ComputeBuffer alterationsBuffer) :
             base(getPointsToAlterShader,
                 getPointsToAlterShader.FindKernel("GetPointsToAlter"))
         {
             this.generator = generator;
+
+            this.alterationsBuffer = alterationsBuffer;
+            ///  
+            if (this.alterationsBuffer == null)
+            {
+                this.alterationsBuffer = new ComputeBuffer(generator.constraint.GetVolume(), sizeof(float));
+                float[] alterations = new float[generator.constraint.GetVolume()];
+                Array.Clear(alterations, 0, alterations.Length);
+                this.alterationsBuffer.SetData(alterations);
+            }
+            ///
         }
 
         void SetSphere(float sphereRadius, Vector3 spherePosition)
@@ -59,6 +72,9 @@ namespace LowPolyTerrain.ShaderObjects
             onEdgesBuffer.SetData(onEdgesFill);
 
             SetBuffer("points", generator.surfaceLevelShader.pointsBuffer, false);
+            ///
+            SetBuffer("alterations", alterationsBuffer, false);
+            ///
             SetBuffer("relevantCubeCorners", relevantCubeCornersBuffer);
             SetBuffer("onEdges", onEdgesBuffer);
         }

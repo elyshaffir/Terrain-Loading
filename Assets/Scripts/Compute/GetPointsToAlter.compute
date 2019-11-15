@@ -3,6 +3,8 @@
 #include "Utils/ChunkIndexing.compute"
 
 static const int numThreadsGetPointsToAlter = 5;
+
+RWStructuredBuffer<float> alterations;
 RWStructuredBuffer<uint> relevantCubeCorners;
 RWStructuredBuffer<Point> points;
 RWStructuredBuffer<int> onEdges;
@@ -99,7 +101,8 @@ void GetPointsToAlter(uint3 id : SV_DispatchThreadID)
     int index = indexFromCoords(id.x, numPointsX, id.y, numPointsY, id.z);    
     if (distance(spherePosition, points[index].position + chunkPosition) <= sphereRadius)
     {
-        points[index].surfaceLevel += power;        
+        points[index].surfaceLevel += power;       
+        alterations[index] += power; 
         CalculateEdges(id);        
     }    
     if (points[index].surfaceLevel < isoLevel)

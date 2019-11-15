@@ -7,6 +7,7 @@ static const int numThreadsSurfaceLevel = 5;
 
 RWStructuredBuffer<Point> points;
 RWStructuredBuffer<uint> relevantCubeCorners;
+StructuredBuffer<float> alterations;
 
 uint numPointsX;
 uint numPointsY;
@@ -99,9 +100,9 @@ void GenerateSurfaceLevel(uint3 id : SV_DispatchThreadID)
 
 	Point p;
 	p.position = id; // Local position in chunk
-	p.surfaceLevel = generatedNoise - pos.y;
+	p.surfaceLevel = generatedNoise - pos.y + alterations[index];
 		
-	if (abs(p.surfaceLevel - isoLevel) < 1.6) // Finding optimal number will create an optimal marching amount, if holes appear enlarge this number
+	if (abs(p.surfaceLevel - isoLevel) < 20) // Finding optimal number will create an optimal marching amount, if holes appear enlarge this number
 	{		
 		AddRelevantCubes(id);		
 	}	

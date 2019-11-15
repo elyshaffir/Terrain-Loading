@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
+using static LowPolyTerrain.Chunk.TerrainChunkIndex;
 
 namespace LowPolyTerrain.Chunk
 {
@@ -8,10 +10,13 @@ namespace LowPolyTerrain.Chunk
         public static List<TerrainChunk> chunksToLoad;
         public static List<TerrainChunk> chunksWithPoints;
 
+        static Dictionary<TerrainChunkIndex, ComputeBuffer> cachedChunks;
+
         public static void Init()
         {
             chunksToLoad = new List<TerrainChunk>();
             chunksWithPoints = new List<TerrainChunk>();
+            cachedChunks = new Dictionary<TerrainChunkIndex, ComputeBuffer>(new TerrainChunkIndexComparer());
         }
 
         public static void PhaseOne(int renderDistance)
@@ -50,6 +55,37 @@ namespace LowPolyTerrain.Chunk
                 relevantChunk.PhaseFour();
             }
             chunksWithPoints.Clear();
+        }
+
+        public static void CacheChunk(TerrainChunkIndex index, ComputeBuffer alterationsBuffer)
+        {
+            try
+            {
+                cachedChunks.Add(index, alterationsBuffer);
+                // Since this means the chunk was already cached,
+                // the reference to the points buffer is also in the dictionary already                
+            }
+            catch (ArgumentException) { }
+        }
+
+        public static ComputeBuffer GetCachedChunk(TerrainChunkIndex index)
+        {
+            try
+            {
+                return cachedChunks[index];
+            }
+            catch (KeyNotFoundException)
+            {
+                return null;
+            }
+        }
+
+        public static void ReleaseCached()
+        {
+            foreach (ComputeBuffer alterationsBuffer in cachedChunks.Values)
+            {
+                alterationsBuffer.Release();
+            }
         }
     }
 }

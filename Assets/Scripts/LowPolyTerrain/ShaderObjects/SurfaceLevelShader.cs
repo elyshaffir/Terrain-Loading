@@ -55,7 +55,6 @@ namespace LowPolyTerrain.ShaderObjects
         public override void SetBuffers()
         {
             pointsBuffer = new ComputeBuffer(generator.constraint.GetVolume(), Point.StructSize);
-
             // relevantCubeCorners = new uint[generator.constraint.GetVolume()];
             // Array.Clear(relevantCubeCorners, 0, relevantCubeCorners.Length);
             relevantCubeCornersBuffer = new ComputeBuffer(generator.constraint.GetVolume(), sizeof(uint));
@@ -66,6 +65,7 @@ namespace LowPolyTerrain.ShaderObjects
 
             SetBuffer("points", pointsBuffer);
             SetBuffer("relevantCubeCorners", relevantCubeCornersBuffer);
+            SetBuffer("alterations", generator.getPointsToAlterShader.alterationsBuffer, false);
         }
 
         public override void Dispatch()

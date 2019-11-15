@@ -16,6 +16,8 @@ namespace LowPolyTerrain.Chunk
         TerrainChunkMeshGenerator meshGenerator;
         GameObject terrainObject;
 
+        bool cached;
+
         public TerrainChunk(TerrainChunkIndex index)
         {
             this.index = index;
@@ -25,6 +27,7 @@ namespace LowPolyTerrain.Chunk
             terrainObject.GetComponent<MeshFilter>().mesh = meshGenerator.mesh;
             terrainObject.GetComponent<MeshCollider>().sharedMesh = meshGenerator.mesh;
             TerrainChunkAlterationManager.CreateChunk(index);
+            this.cached = false;
         }
 
         public void PhaseOne()
@@ -61,6 +64,18 @@ namespace LowPolyTerrain.Chunk
 
         public void Destroy()
         {
+            if (!cached)
+            {
+                meshGenerator.surfaceLevelShader.Release();
+                meshGenerator.getPointsToAlterShader.alterationsBuffer.Release(); // Later might fuck up saving alterations on machine, since it doesn't cache chunks that were not unloaded
+                MonoBehaviour.Destroy(terrainObject);
+            }
+        }
+
+        public void Cache()
+        {
+            cached = true;
+            TerrainChunkLoadingManager.CacheChunk(index, meshGenerator.getPointsToAlterShader.alterationsBuffer);
             meshGenerator.surfaceLevelShader.Release();
             MonoBehaviour.Destroy(terrainObject);
         }

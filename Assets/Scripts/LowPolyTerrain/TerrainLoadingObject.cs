@@ -70,7 +70,7 @@ namespace LowPolyTerrain
                 TerrainChunk loadedChunk = loadedChunks[i];
                 if (!loadedChunk.index.InRange(currentTerrainChunkIndex, renderDistance))
                 {
-                    loadedChunk.Destroy();
+                    loadedChunk.Cache();
                     TerrainChunkLoadingManager.chunksToLoad.Remove(loadedChunk);
 
                     TerrainChunkIndex initialTerrainChunkIndex = currentTerrainChunkIndex - distance;
@@ -100,6 +100,11 @@ namespace LowPolyTerrain
             TerrainChunk chunkToAdd = new TerrainChunk(indexToLoad);
             TerrainChunkLoadingManager.chunksToLoad.Add(chunkToAdd);
             loadedChunks.Add(chunkToAdd);
+        }
+
+        void OnDestroy()
+        {
+            TerrainChunkLoadingManager.ReleaseCached();
         }
     }
 }

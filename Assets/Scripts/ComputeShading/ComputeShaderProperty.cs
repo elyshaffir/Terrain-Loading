@@ -6,6 +6,7 @@ namespace ComputeShading
     {
         Int,
         Float,
+        Bool,
         Vector3,
         Vector4
     }
@@ -27,6 +28,10 @@ namespace ComputeShading
                 case ComputeShaderPropertyType.Float:
                     ComputeShaderFloatProperty floatProperty = (ComputeShaderFloatProperty)this;
                     shader.SetFloat(floatProperty.name, floatProperty.value);
+                    break;
+                case ComputeShaderPropertyType.Bool:
+                    ComputeShaderBoolProperty boolProperty = (ComputeShaderBoolProperty)this;
+                    shader.SetBool(boolProperty.name, boolProperty.value);
                     break;
                 case ComputeShaderPropertyType.Vector3:
                     ComputeShaderVector3Property vector3Property = (ComputeShaderVector3Property)this;
@@ -62,6 +67,18 @@ namespace ComputeShading
             public override ComputeShaderPropertyType GetPropertyType()
             {
                 return ComputeShaderPropertyType.Float;
+            }
+        }
+
+        public class ComputeShaderBoolProperty : ComputeShaderProperty
+        {
+            public bool value;
+
+            public ComputeShaderBoolProperty(string name, bool value) : base(name) => this.value = value;
+
+            public override ComputeShaderPropertyType GetPropertyType()
+            {
+                return ComputeShaderPropertyType.Bool;
             }
         }
 
