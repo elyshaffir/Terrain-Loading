@@ -26,7 +26,6 @@ namespace LowPolyTerrain.Chunk
             terrainObject.GetComponent<TerrainChunkBehaviour>().chunk = this;
             terrainObject.GetComponent<MeshFilter>().mesh = meshGenerator.mesh;
             terrainObject.GetComponent<MeshCollider>().sharedMesh = meshGenerator.mesh;
-            TerrainChunkAlterationManager.CreateChunk(index);
             this.cached = false;
         }
 
@@ -39,7 +38,7 @@ namespace LowPolyTerrain.Chunk
         public bool PhaseTwo()
         {
             meshGenerator.surfaceLevelShader.GetData();
-            return meshGenerator.ApplyAlterations() || meshGenerator.surfaceLevelShader.IsRelevant();
+            return meshGenerator.surfaceLevelShader.IsRelevant();
         }
 
         public void PhaseThree()
@@ -58,7 +57,7 @@ namespace LowPolyTerrain.Chunk
 
         public void Alter(Vector3 spherePosition, float sphereRadius, float power, HashSet<TerrainChunkIndex> additionalIndices)
         {
-            TerrainChunkAlterationManager.AddAlterations(index, meshGenerator.Alter(spherePosition, sphereRadius, power, additionalIndices, this));
+            meshGenerator.Alter(spherePosition, sphereRadius, power, additionalIndices, this);
             terrainObject.GetComponent<MeshCollider>().sharedMesh = meshGenerator.mesh;
         }
 
@@ -67,7 +66,7 @@ namespace LowPolyTerrain.Chunk
             if (!cached)
             {
                 meshGenerator.surfaceLevelShader.Release();
-                meshGenerator.getPointsToAlterShader.alterationsBuffer.Release(); // Later might fuck up saving alterations on machine, since it doesn't cache chunks that were not unloaded
+                meshGenerator.alterPointsShader.alterationsBuffer.Release();
                 MonoBehaviour.Destroy(terrainObject);
             }
         }
@@ -75,7 +74,7 @@ namespace LowPolyTerrain.Chunk
         public void Cache()
         {
             cached = true;
-            TerrainChunkLoadingManager.CacheChunk(index, meshGenerator.getPointsToAlterShader.alterationsBuffer);
+            TerrainChunkLoadingManager.CacheChunk(index, meshGenerator.alterPointsShader.alterationsBuffer);
             meshGenerator.surfaceLevelShader.Release();
             MonoBehaviour.Destroy(terrainObject);
         }

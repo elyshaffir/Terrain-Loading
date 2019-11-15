@@ -62,8 +62,6 @@ namespace LowPolyTerrain.Chunk
             try
             {
                 cachedChunks.Add(index, alterationsBuffer);
-                // Since this means the chunk was already cached,
-                // the reference to the points buffer is also in the dictionary already                
             }
             catch (ArgumentException) { }
         }

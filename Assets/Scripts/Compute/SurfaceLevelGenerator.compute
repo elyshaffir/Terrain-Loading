@@ -2,6 +2,7 @@
 #include "Imported/Noise.compute"
 #include "Utils/DataStructures/Point.compute"
 #include "Utils/ChunkIndexing.compute"
+#include "Utils/CubeManaging.compute"
 
 static const int numThreadsSurfaceLevel = 5;
 
@@ -28,14 +29,15 @@ float offsetNoise;
 
 float isoLevel;
 
-float generateNoise(float3 pos)
+float GenerateNoise(float3 pos)
 {
 	float noise = 0;
 	float frequency = noiseScale / 100;	
 	float amplitude = 1;
 	float weight = 1;	
-	for (int j = 0; j < octaves; j++) {
-		float n = snoise((pos + offsetNoise) * frequency);
+	for (int i = 0; i < octaves; i++)
+	{
+		float n = SNoise((pos + offsetNoise) * frequency);
 		float v = 1 - abs(n);
 		v = v * v;
 		v *= weight;
@@ -44,67 +46,29 @@ float generateNoise(float3 pos)
 		amplitude *= persistence;
 		frequency *= lacunarity;
 	}
-	float finalVal = -(pos.y + floorOffset) + noise * noiseWeight + (pos.y%params.x) * params.y;	
-	if (pos.y < hardFloor) {
+	float finalVal = -(pos.y + floorOffset) + noise * noiseWeight + (pos.y % params.x) * params.y;
+	if (pos.y < hardFloor)
+	{
 		finalVal += hardFloorWeight;
 	}
 
 	return finalVal;
 }
 
-void AddCube(uint3 cube)
-{
-	uint index = indexFromCoordsInCubes(cube.x, numPointsX, cube.y, numPointsY, cube.z);
-	relevantCubeCorners[index] = 1;	
-}
-
-void AddRelevantCubes(uint3 id)
-{		
-	AddCube(id);
-	if (id.x > 0)
-	{
-		AddCube(uint3(id.x - 1, id.y, id.z));
-		if (id.y > 0)
-		{
-			AddCube(uint3(id.x - 1, id.y - 1, id.z));
-			if (id.z > 0)
-			{
-				AddCube(uint3(id.x - 1, id.y - 1, id.z - 1));
-			}
-		}
-		if (id.z > 0)
-		{
-			AddCube(uint3(id.x - 1, id.y, id.z - 1));
-		}
-	}
-	if (id.y > 0)
-	{
-		AddCube(uint3(id.x, id.y - 1, id.z));
-		if (id.z > 0)
-		{
-			AddCube(uint3(id.x, id.y - 1, id.z - 1));
-		}
-	}
-	if (id.z > 0)
-	{
-		AddCube(uint3(id.x, id.y, id.z - 1));
-	}
-}
-
 [numthreads(numThreadsSurfaceLevel, numThreadsSurfaceLevel, numThreadsSurfaceLevel)]
 void GenerateSurfaceLevel(uint3 id : SV_DispatchThreadID)
-{	
-	float3 pos = float3(id.x, id.y, id.z) + offset; // World position
-	float generatedNoise = generateNoise(pos);
-	int index = indexFromCoords(id.x, numPointsX, id.y, numPointsY, id.z);
+{
+	float3 pos = float3(id.x, id.y, id.z) + offset;
+	float generatedNoise = GenerateNoise(pos);
+	int index = IndexFromCoords(id.x, numPointsX, id.y, numPointsY, id.z);
 
 	Point p;
-	p.position = id; // Local position in chunk
+	p.position = id;
 	p.surfaceLevel = generatedNoise - pos.y + alterations[index];
 		
-	if (abs(p.surfaceLevel - isoLevel) < 20) // Finding optimal number will create an optimal marching amount, if holes appear enlarge this number
-	{		
-		AddRelevantCubes(id);		
+	if (abs(p.surfaceLevel - isoLevel) < 20)
+	{
+		AddRelevantCubes(id, numPointsX, numPointsY, relevantCubeCorners);
 	}	
 	points[index] = p;
 }

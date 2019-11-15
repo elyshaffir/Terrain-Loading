@@ -8,9 +8,9 @@ using static ComputeShading.ComputeShaderProperty;
 
 namespace LowPolyTerrain.ShaderObjects
 {
-    class GetPointsToAlterShader : ComputeShaderObject
+    class AlterPointsShader : ComputeShaderObject
     {
-        public static ComputeShader getPointsToAlterShader;
+        public static ComputeShader alterPointsShader;
 
         public ComputeBuffer alterationsBuffer;
 
@@ -20,18 +20,18 @@ namespace LowPolyTerrain.ShaderObjects
         ComputeBuffer onEdgesBuffer;
         PrepareRelevantCubesShader prepareRelevantCubesShader;
 
-        float sphereRadius;
         Vector3 spherePosition;
+        float sphereRadius;
+        float power;
         int[] onEdges;
 
-        public GetPointsToAlterShader(TerrainChunkMeshGenerator generator, ComputeBuffer alterationsBuffer) :
-            base(getPointsToAlterShader,
-                getPointsToAlterShader.FindKernel("GetPointsToAlter"))
+        public AlterPointsShader(TerrainChunkMeshGenerator generator, ComputeBuffer alterationsBuffer) :
+            base(alterPointsShader,
+                alterPointsShader.FindKernel("AlterPoints"))
         {
             this.generator = generator;
 
             this.alterationsBuffer = alterationsBuffer;
-            ///  
             if (this.alterationsBuffer == null)
             {
                 this.alterationsBuffer = new ComputeBuffer(generator.constraint.GetVolume(), sizeof(float));
@@ -39,13 +39,13 @@ namespace LowPolyTerrain.ShaderObjects
                 Array.Clear(alterations, 0, alterations.Length);
                 this.alterationsBuffer.SetData(alterations);
             }
-            ///
         }
 
-        void SetSphere(float sphereRadius, Vector3 spherePosition)
+        void SetAlterationData(Vector3 spherePosition, float sphereRadius, float power)
         {
-            this.sphereRadius = sphereRadius;
             this.spherePosition = spherePosition;
+            this.sphereRadius = sphereRadius;
+            this.power = power;
         }
 
         protected override ComputeShaderProperty[] GetProperties()
@@ -54,7 +54,7 @@ namespace LowPolyTerrain.ShaderObjects
                 new ComputeShaderIntProperty("numPointsX", generator.constraint.scale.x * TerrainChunk.ChunkSizeInPoints.x),
                 new ComputeShaderIntProperty("numPointsY", generator.constraint.scale.y * TerrainChunk.ChunkSizeInPoints.y),
                 new ComputeShaderIntProperty("numPointsZ", generator.constraint.scale.z * TerrainChunk.ChunkSizeInPoints.z),
-                new ComputeShaderFloatProperty("power", 1f),
+                new ComputeShaderFloatProperty("power", power),
                 new ComputeShaderVector3Property("chunkPosition", generator.constraint.position),
                 new ComputeShaderFloatProperty("sphereRadius", sphereRadius),
                 new ComputeShaderVector3Property("spherePosition", spherePosition),
@@ -72,9 +72,7 @@ namespace LowPolyTerrain.ShaderObjects
             onEdgesBuffer.SetData(onEdgesFill);
 
             SetBuffer("points", generator.surfaceLevelShader.pointsBuffer, false);
-            ///
             SetBuffer("alterations", alterationsBuffer, false);
-            ///
             SetBuffer("relevantCubeCorners", relevantCubeCornersBuffer);
             SetBuffer("onEdges", onEdgesBuffer);
         }
@@ -90,8 +88,6 @@ namespace LowPolyTerrain.ShaderObjects
 
         public override void GetData()
         {
-            // Perhaps use GenerateSurfaceLevel (or a simmilar version to it) that doesnt generate the noise,
-            // but just checks for relevant cubes on the already existing array of points (points is already modified here)
             prepareRelevantCubesShader = new PrepareRelevantCubesShader(generator, relevantCubeCornersBuffer);
             prepareRelevantCubesShader.Execute();
 
@@ -105,9 +101,9 @@ namespace LowPolyTerrain.ShaderObjects
             prepareRelevantCubesShader.Release();
         }
 
-        public void Execute(float sphereRadius, Vector3 spherePosition, TerrainChunkIndex index, HashSet<TerrainChunkIndex> additionalIndices)
+        public void Execute(Vector3 spherePosition, float sphereRadius, float power, TerrainChunkIndex index, HashSet<TerrainChunkIndex> additionalIndices)
         {
-            SetSphere(sphereRadius, spherePosition);
+            SetAlterationData(spherePosition, sphereRadius, power);
             SetBuffers();
             Dispatch();
             GetData();

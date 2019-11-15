@@ -1,0 +1,38 @@
+#pragma kernel AlterPoints
+#include "Utils/DataStructures/Point.compute"
+#include "Utils/ChunkIndexing.compute"
+#include "Utils/CubeManaging.compute"
+
+static const int numThreadsAlterPoints = 5;
+
+RWStructuredBuffer<float> alterations;
+RWStructuredBuffer<uint> relevantCubeCorners;
+RWStructuredBuffer<Point> points;
+RWStructuredBuffer<int> onEdges;
+
+uint numPointsX;
+uint numPointsY;
+uint numPointsZ;
+
+float power;
+float3 chunkPosition;
+float sphereRadius;
+float3 spherePosition;
+
+float isoLevel;
+
+[numthreads(numThreadsAlterPoints, numThreadsAlterPoints, numThreadsAlterPoints)]
+void AlterPoints(uint3 id : SV_DispatchThreadID)
+{
+    int index = IndexFromCoords(id.x, numPointsX, id.y, numPointsY, id.z);
+    if (distance(spherePosition, points[index].position + chunkPosition) <= sphereRadius)
+    {
+        points[index].surfaceLevel += power;
+        alterations[index] += power; 
+        CalculateEdges(id, numPointsX, numPointsY, numPointsZ, onEdges);
+    }    
+    if (points[index].surfaceLevel < isoLevel)
+    {
+        AddRelevantCubes(id, numPointsX, numPointsY, relevantCubeCorners);
+    }
+}

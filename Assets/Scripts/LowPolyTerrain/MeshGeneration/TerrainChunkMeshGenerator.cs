@@ -14,18 +14,18 @@ namespace LowPolyTerrain.MeshGeneration
         public Triangle[] triangles;
         public SurfaceLevelShader surfaceLevelShader;
         public MarchingCubesShader marchingCubesShader;
-        public GetPointsToAlterShader getPointsToAlterShader;
+        public AlterPointsShader alterPointsShader;
 
         TerrainChunkIndex index;
 
-        public static void Init(ComputeShader surfaceLevelGeneratorShader, ComputeShader marchingCubesGeneratorShader, ComputeShader getPointsToAlterShader, ComputeShader prepareRelevantCubesShader)
+        public static void Init(ComputeShader surfaceLevelGeneratorShader, ComputeShader marchingCubesGeneratorShader, ComputeShader alterPointsShader, ComputeShader prepareRelevantCubesShader)
         {
             SurfaceLevelShader.surfaceLevelGeneratorShader = surfaceLevelGeneratorShader;
             MarchingCubesShader.marchingCubesGeneratorShader = marchingCubesGeneratorShader;
-            GetPointsToAlterShader.getPointsToAlterShader = getPointsToAlterShader;
+            AlterPointsShader.alterPointsShader = alterPointsShader;
             PrepareRelevantCubesShader.prepareRelevantCubesShader = prepareRelevantCubesShader;
 
-            SurfaceLevelShader.seed = 12;//Random.Range(-1000000f, 1000000f);
+            SurfaceLevelShader.seed = Random.Range(-1000000f, 1000000f);
             SurfaceLevelShader.isoLevel = -3.5f;
         }
 
@@ -36,7 +36,7 @@ namespace LowPolyTerrain.MeshGeneration
 
             surfaceLevelShader = new SurfaceLevelShader(this);
             marchingCubesShader = new MarchingCubesShader(this);
-            getPointsToAlterShader = new GetPointsToAlterShader(this, TerrainChunkLoadingManager.GetCachedChunk(index));
+            alterPointsShader = new AlterPointsShader(this, TerrainChunkLoadingManager.GetCachedChunk(index));
 
             mesh = new Mesh();
         }
@@ -44,41 +44,12 @@ namespace LowPolyTerrain.MeshGeneration
         public Dictionary<Vector3, float> Alter(Vector3 spherePosition, float sphereRadius, float power, HashSet<TerrainChunkIndex> additionalIndices, TerrainChunk chunk)
         {
             Dictionary<Vector3, float> alterations = new Dictionary<Vector3, float>(new Vector3Comparer());
-            getPointsToAlterShader.Execute(sphereRadius, spherePosition, index, additionalIndices);
-            // The alterations need to be brought to the CPU any way because the saving of alterations on the machine (to a file) cannot be done from the CPU
-            // foreach (int indexToAlter in pointsToAlter)
-            // {
-            //     // points[indexToAlter].surfaceLevel += power;                
-            //     alterations[points[indexToAlter].position + constraint.position] = points[indexToAlter].surfaceLevel;
-            //     // As last resort, there can be an array of onEdges for each generator for GetAdjacentToManipulate
-            //     // GetAdjacentToManipulate can also be calculated in the shader given the current chunk and in a simmilar way to the way relevantCubes is calculated (array[i] = 1)
-            //     index.GetAdjacentToManipulate(points[indexToAlter].onEdges, additionalIndices); // DONE!
-            // }            
+            alterPointsShader.Execute(spherePosition, sphereRadius, power, index, additionalIndices);
             if (surfaceLevelShader.IsRelevant())
             {
                 TerrainChunkLoadingManager.chunksWithPoints.Add(chunk);
             }
             return alterations;
-        }
-
-        public bool ApplyAlterations()
-        {
-            Dictionary<Vector3, float> alterations = TerrainChunkAlterationManager.alterations[index];
-            if (alterations.Count == 0)
-            {
-                return false;
-            }
-            // Dictionary<Vector3, int> pointIndices = new Dictionary<Vector3, int>();
-            // for (int i = 0; i < points.Length; i++)
-            // {
-            //     pointIndices.Add(points[i].position, i);
-            // }
-            // foreach (KeyValuePair<Vector3, float> alteration in alterations)
-            // {
-            //     points[pointIndices[alteration.Key]].surfaceLevel = alteration.Value;
-            // }
-            return true;
-
         }
 
         public void CreateMesh()

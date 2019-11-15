@@ -11,10 +11,10 @@ uint numPointsY;
 
 [numthreads(numThreadsPrepareRelevantCubes, numThreadsPrepareRelevantCubes, numThreadsPrepareRelevantCubes)]
 void PrepareRelevantCubes(uint3 id : SV_DispatchThreadID)
-{    
-    uint index = indexFromCoordsInCubes(id.x, numPointsX, id.y, numPointsY, id.z);
+{
+    uint index = IndexFromCoordsInCubes(id.x, numPointsX, id.y, numPointsY, id.z);
     if (relevantCubeCorners[index] != 0)
     {
-        cubesToMarch.Append(id);        
+        cubesToMarch.Append(id);
     }
 }

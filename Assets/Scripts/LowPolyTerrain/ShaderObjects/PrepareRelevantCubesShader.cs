@@ -39,7 +39,7 @@ namespace LowPolyTerrain.ShaderObjects
             cubesToMarchCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
 
             SetBuffer("relevantCubeCorners", relevantCubeCornersBuffer, false);
-            SetBuffer("cubesToMarch", cubesToMarchBuffer, false); // Make sure this buffer is not released before MarchingCubesShader is executed!
+            SetBuffer("cubesToMarch", cubesToMarchBuffer, false);
             AddBuffer(cubesToMarchCountBuffer);
         }
 

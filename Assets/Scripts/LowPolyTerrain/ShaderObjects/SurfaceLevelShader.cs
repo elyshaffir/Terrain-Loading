@@ -1,8 +1,6 @@
-using System;
 using ComputeShading;
 using LowPolyTerrain.Chunk;
 using LowPolyTerrain.MeshGeneration;
-using LowPolyTerrain.MeshGeneration.DataStructures;
 using UnityEngine;
 using static ComputeShading.ComputeShaderProperty;
 
@@ -54,18 +52,12 @@ namespace LowPolyTerrain.ShaderObjects
 
         public override void SetBuffers()
         {
-            pointsBuffer = new ComputeBuffer(generator.constraint.GetVolume(), Point.StructSize);
-            // relevantCubeCorners = new uint[generator.constraint.GetVolume()];
-            // Array.Clear(relevantCubeCorners, 0, relevantCubeCorners.Length);
+            pointsBuffer = new ComputeBuffer(generator.constraint.GetVolume(), sizeof(float) * 3 + sizeof(float));
             relevantCubeCornersBuffer = new ComputeBuffer(generator.constraint.GetVolume(), sizeof(uint));
-            // if the initial value is not set to 0 it might pose a problem
-            // but even if the value in the array is random, worst case scenario
-            // the random value is 1 and an empty cube gets marched
-            // relevantCubeCornersBuffer.SetData(relevantCubeCorners);
 
             SetBuffer("points", pointsBuffer);
             SetBuffer("relevantCubeCorners", relevantCubeCornersBuffer);
-            SetBuffer("alterations", generator.getPointsToAlterShader.alterationsBuffer, false);
+            SetBuffer("alterations", generator.alterPointsShader.alterationsBuffer, false);
         }
 
         public override void Dispatch()

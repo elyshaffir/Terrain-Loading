@@ -12,7 +12,7 @@ namespace LowPolyTerrain
         public GameObject terrainChunkPrefab;
         public ComputeShader surfaceLevelGeneratorShader;
         public ComputeShader marchingCubesGeneratorShader;
-        public ComputeShader getPointsToAlterShader;
+        public ComputeShader alterPointsShader;
         public ComputeShader prepareRelevantCubesShader;
         public int renderDistance;
 
@@ -35,9 +35,8 @@ namespace LowPolyTerrain
         {
             TerrainChunk.prefab = terrainChunkPrefab;
             TerrainChunk.parent = transform;
-            TerrainChunkMeshGenerator.Init(surfaceLevelGeneratorShader, marchingCubesGeneratorShader, getPointsToAlterShader, prepareRelevantCubesShader);
+            TerrainChunkMeshGenerator.Init(surfaceLevelGeneratorShader, marchingCubesGeneratorShader, alterPointsShader, prepareRelevantCubesShader);
             TerrainChunkLoadingManager.Init();
-            TerrainChunkAlterationManager.Init();
         }
 
         void InitializeChunks()
@@ -63,7 +62,6 @@ namespace LowPolyTerrain
 
         void ManageChunks(TerrainChunkIndex distance)
         {
-            // If the chunk is out of range, invert it around currentTerrainChunkIndex        
             int c = loadedChunks.Count;
             for (int i = 0; i < c; i++)
             {
@@ -75,7 +73,7 @@ namespace LowPolyTerrain
 
                     TerrainChunkIndex initialTerrainChunkIndex = currentTerrainChunkIndex - distance;
                     TerrainChunkIndex initialGridPos = loadedChunk.index - initialTerrainChunkIndex;
-                    TerrainChunkIndex axisToInvert = distance.Sign().Abs(); // if the value is not 0, need to invert on that axis
+                    TerrainChunkIndex axisToInvert = distance.Sign().Abs();
                     TerrainChunkIndex gridPosInverted = initialGridPos.Invert(axisToInvert);
                     gridPosInverted -= axisToInvert;
                     TerrainChunkIndex newIndex = currentTerrainChunkIndex + gridPosInverted;

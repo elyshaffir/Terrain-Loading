@@ -48,7 +48,7 @@ namespace LowPolyTerrain.Chunk
             for (int xFlag = 0; xFlag <= 5; xFlag += 5)
             {
                 int xModifier = (xFlag == 0) ? -1 : ((xFlag == 5) ? 1 : 0);
-                if (xModifier != 0 && onEdges[xFlag] == 1) // the modifier can never be 0
+                if (xModifier != 0 && onEdges[xFlag] == 1)
                 {
                     additionalIndices.Add(new TerrainChunkIndex(x + xModifier, y, z));
                 }

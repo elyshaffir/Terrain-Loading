@@ -1,0 +1,38 @@
+void AddCube(uint3 cube, uint numPointsX, uint numPointsY, RWStructuredBuffer<uint> relevantCubeCorners)
+{
+    uint index = IndexFromCoordsInCubes(cube.x, numPointsX, cube.y, numPointsY, cube.z);
+    relevantCubeCorners[index] = 1;
+}
+
+void AddRelevantCubes(uint3 id, uint numPointsX, uint numPointsY, RWStructuredBuffer<uint> relevantCubeCorners)
+{
+    AddCube(id, numPointsX, numPointsY, relevantCubeCorners);
+    if (id.x > 0)
+    {
+        AddCube(uint3(id.x - 1, id.y, id.z), numPointsX, numPointsY, relevantCubeCorners);
+        if (id.y > 0)
+        {
+            AddCube(uint3(id.x - 1, id.y - 1, id.z), numPointsX, numPointsY, relevantCubeCorners);
+            if (id.z > 0)
+            {
+                AddCube(uint3(id.x - 1, id.y - 1, id.z - 1), numPointsX, numPointsY, relevantCubeCorners);
+            }
+        }
+        if (id.z > 0)
+        {
+            AddCube(uint3(id.x - 1, id.y, id.z - 1), numPointsX, numPointsY, relevantCubeCorners);
+        }
+    }
+    if (id.y > 0)
+    {
+        AddCube(uint3(id.x, id.y - 1, id.z), numPointsX, numPointsY, relevantCubeCorners);
+        if (id.z > 0)
+        {
+            AddCube(uint3(id.x, id.y - 1, id.z - 1), numPointsX, numPointsY, relevantCubeCorners);
+        }
+    }
+    if (id.z > 0)
+    {
+        AddCube(uint3(id.x, id.y, id.z - 1), numPointsX, numPointsY, relevantCubeCorners);
+    }
+}
