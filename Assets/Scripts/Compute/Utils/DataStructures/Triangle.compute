@@ -3,4 +3,16 @@ struct Triangle
     float3 vertexC;
     float3 vertexB;
     float3 vertexA;
+
+    bool IsEmpty()
+    {
+        float3 total = vertexC + vertexB + vertexA;
+        return total.x == total.y == total.z == 0;
+    }
+};
+
+static const Triangle emptyTriangle = {
+    float3(0, 0, 0),
+    float3(0, 0, 0),
+    float3(0, 0, 0)
 };

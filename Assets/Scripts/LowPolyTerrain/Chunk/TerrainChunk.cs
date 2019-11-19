@@ -51,7 +51,6 @@ namespace LowPolyTerrain.Chunk
         {
             meshGenerator.marchingCubesShader.GetData();
             meshGenerator.marchingCubesShader.Release();
-            meshGenerator.CreateMesh();
             terrainObject.GetComponent<MeshCollider>().sharedMesh = meshGenerator.mesh;
         }
 

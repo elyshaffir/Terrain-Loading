@@ -1,7 +1,7 @@
+using System;
 using ComputeShading;
 using LowPolyTerrain.Chunk;
 using LowPolyTerrain.MeshGeneration;
-using LowPolyTerrain.MeshGeneration.DataStructures;
 using UnityEngine;
 using static ComputeShading.ComputeShaderProperty;
 
@@ -13,11 +13,17 @@ namespace LowPolyTerrain.ShaderObjects
 
         readonly TerrainChunkMeshGenerator generator;
 
-        ComputeBuffer triangleBuffer;
-        ComputeBuffer triangleCountBuffer;
         ComputeBuffer cubesToMarchBuffer;
 
         uint cubesToMarchCount;
+
+        ///
+        ComputeBuffer currentCubeBuffer;
+        ComputeBuffer meshVerticesBuffer;
+        ComputeBuffer meshVerticesCountBuffer;
+        ComputeBuffer meshTrianglesBuffer;
+        ComputeBuffer meshTrianglesCountBuffer;
+        ///
 
         public MarchingCubesShader(TerrainChunkMeshGenerator generator) :
             base(marchingCubesGeneratorShader,
@@ -43,15 +49,27 @@ namespace LowPolyTerrain.ShaderObjects
 
         public override void SetBuffers()
         {
-            triangleBuffer = new ComputeBuffer(
-                generator.constraint.GetVolume(), Triangle.StructSize, ComputeBufferType.Append);
-            triangleBuffer.SetCounterValue(0);
-            triangleCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
+            ///
+            currentCubeBuffer = new ComputeBuffer(2, sizeof(uint));
+            uint[] filler = new uint[2] { 0, 0 };
+            currentCubeBuffer.SetData(filler);
+            SetBuffer("currentCube", currentCubeBuffer);
 
-            SetBuffer("triangles", triangleBuffer);
+            meshVerticesBuffer = new ComputeBuffer((int)cubesToMarchCount * 5 * 3, sizeof(float) * 3, ComputeBufferType.Append);
+            meshVerticesBuffer.SetCounterValue(0);
+            meshVerticesCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
+            SetBuffer("meshVertices", meshVerticesBuffer);
+            AddBuffer(meshVerticesCountBuffer);
+
+            meshTrianglesBuffer = new ComputeBuffer((int)cubesToMarchCount * 5 * 3, sizeof(int), ComputeBufferType.Append);
+            meshTrianglesBuffer.SetCounterValue(0);
+            meshTrianglesCountBuffer = new ComputeBuffer(1, sizeof(int), ComputeBufferType.IndirectArguments);
+            SetBuffer("meshTriangles", meshTrianglesBuffer);
+            AddBuffer(meshTrianglesCountBuffer);
+            ///
+
             SetBuffer("points", generator.surfaceLevelShader.pointsBuffer, false);
             SetBuffer("cubesToMarch", cubesToMarchBuffer);
-            AddBuffer(triangleCountBuffer);
         }
 
         public override void Dispatch()
@@ -65,11 +83,34 @@ namespace LowPolyTerrain.ShaderObjects
 
         public override void GetData()
         {
-            ComputeBuffer.CopyCount(triangleBuffer, triangleCountBuffer, 0);
-            int[] triangleCount = new int[1] { 0 };
-            triangleCountBuffer.GetData(triangleCount);
-            generator.triangles = new Triangle[triangleCount[0]];
-            triangleBuffer.GetData(generator.triangles);
+            generator.mesh.Clear();
+
+            ComputeBuffer.CopyCount(meshVerticesBuffer, meshVerticesCountBuffer, 0);
+            int[] verticesCount = new int[1] { 0 };
+            meshVerticesCountBuffer.GetData(verticesCount);
+            generator.mesh.vertices = new Vector3[verticesCount[0]];
+            meshVerticesBuffer.GetData(generator.mesh.vertices);
+
+            ComputeBuffer.CopyCount(meshTrianglesBuffer, meshTrianglesCountBuffer, 0);
+            int[] trianglesCount = new int[1] { 0 };
+            meshTrianglesCountBuffer.GetData(trianglesCount);
+            generator.mesh.triangles = new int[trianglesCount[0]];
+            meshTrianglesBuffer.GetData(generator.mesh.triangles);
+
+            try
+            {
+                // Debug.Log(generator.mesh.triangles[101]);
+                // Debug.Log(generator.mesh.vertices[0]);
+            }
+            catch (IndexOutOfRangeException) { }
+
+            ///
+            uint[] currentCube = new uint[2];
+            currentCubeBuffer.GetData(currentCube);
+            // Debug.Log(currentCube[0]);
+            //
+
+            generator.mesh.RecalculateNormals();
         }
     }
 }

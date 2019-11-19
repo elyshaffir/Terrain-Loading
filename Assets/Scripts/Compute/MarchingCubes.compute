@@ -1,12 +1,16 @@
 ﻿#pragma kernel MarchCubes
 #include "Imported/MarchTables.compute"
 #include "Utils/DataStructures/Point.compute"
-#include "Utils/DataStructures/Triangle.compute"
 #include "Utils/ChunkIndexing.compute"
 
-AppendStructuredBuffer<Triangle> triangles;
 StructuredBuffer<Point> points;
 StructuredBuffer<uint3> cubesToMarch;
+
+///
+RWStructuredBuffer<uint> currentCube; // acts as some sort of semaphore
+AppendStructuredBuffer<float3> meshVertices;
+AppendStructuredBuffer<int> meshTriangles;
+///
 
 uint numPointsX;
 uint numPointsY;
@@ -41,6 +45,26 @@ int GetCubeIndex(Point cubeCorners[8])
 	return cubeIndex;
 }
 
+void AddTriangle(uint cubeToMarchIndex, float3 vertexA, float3 vertexB, float3 vertexC)
+{
+	// meshVertices.Append(float3(69, 420, 1));	// doesn't work, retrieving data is broken
+	// length of meshVertices is proper and deterministic as shown from CPU logs
+	uint loopCounter = 0; // this is here to make sure that the compiler doesn't get rid of this loop
+	// while (currentCube[0] != cubeToMarchIndex && loopCounter < 2000)
+	// {
+	// 	loopCounter++;
+	// }
+	currentCube[1] = loopCounter; // just to use the variable to avoid compiler bulshit
+	meshVertices.Append(vertexC);	
+	meshVertices.Append(vertexB);
+	meshVertices.Append(vertexA);
+	meshTriangles.Append(cubeToMarchIndex * 3);
+	meshTriangles.Append(cubeToMarchIndex * 3 + 1);
+	meshTriangles.Append(cubeToMarchIndex * 3 + 2);
+	currentCube[0] = cubeToMarchIndex + 1;
+	// currentCube[0] = vertexC.x; // the vertices are calculated correctly
+}
+
 [numthreads(5, 1, 1)]
 void MarchCubes(uint3 id : SV_DispatchThreadID)
 {
@@ -59,7 +83,15 @@ void MarchCubes(uint3 id : SV_DispatchThreadID)
 			points[IndexFromCoords(cubeToMarch.x, numPointsX, cubeToMarch.y + 1, numPointsY, cubeToMarch.z + 1)]};
 
 		int cubeIndex = GetCubeIndex(cubeCorners);
-
+		/*
+			Instead of an AppendBuffer, have a StructuredBuffer of triangles, and
+			index triangles there by cubeToMarchIndex (with maximum spacing between triangles).
+			Then, via another ComputeShader make that StructuredBuffer into the vertices and
+			triangles of the mesh.
+			Then, it might be possible to optimize the recalculation of cubes while manipulating
+			only to the relevant cubes.
+			max num of tris in cube: 5
+		*/
 		for (int i = 0; triangulation[cubeIndex][i] != -1; i += 3)
 		{
 			int a0 = cornerIndexAFromEdge[triangulation[cubeIndex][i]];
@@ -70,12 +102,12 @@ void MarchCubes(uint3 id : SV_DispatchThreadID)
 
 			int a2 = cornerIndexAFromEdge[triangulation[cubeIndex][i + 2]];
 			int b2 = cornerIndexBFromEdge[triangulation[cubeIndex][i + 2]];
+			
+			float3 vertexA = InterpolateVerts(cubeCorners[a0], cubeCorners[b0]);
+			float3 vertexB = InterpolateVerts(cubeCorners[a1], cubeCorners[b1]);
+			float3 vertexC = InterpolateVerts(cubeCorners[a2], cubeCorners[b2]);
 
-			Triangle tri;
-			tri.vertexA = InterpolateVerts(cubeCorners[a0], cubeCorners[b0]);
-			tri.vertexB = InterpolateVerts(cubeCorners[a1], cubeCorners[b1]);
-			tri.vertexC = InterpolateVerts(cubeCorners[a2], cubeCorners[b2]);
-			triangles.Append(tri);
-		}
+			AddTriangle(cubeToMarchIndex, vertexA, vertexB, vertexC);			
+		}		
 	}	
 }

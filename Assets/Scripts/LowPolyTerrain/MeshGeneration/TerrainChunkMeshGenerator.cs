@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Comparers;
 using LowPolyTerrain.Chunk;
-using LowPolyTerrain.MeshGeneration.DataStructures;
 using LowPolyTerrain.ShaderObjects;
 using UnityEngine;
 
@@ -11,7 +10,6 @@ namespace LowPolyTerrain.MeshGeneration
     {
         public Mesh mesh;
         public readonly TerrainChunkConstraint constraint;
-        public Triangle[] triangles;
         public SurfaceLevelShader surfaceLevelShader;
         public MarchingCubesShader marchingCubesShader;
         public AlterPointsShader alterPointsShader;
@@ -25,7 +23,7 @@ namespace LowPolyTerrain.MeshGeneration
             AlterPointsShader.alterPointsShader = alterPointsShader;
             PrepareRelevantCubesShader.prepareRelevantCubesShader = prepareRelevantCubesShader;
 
-            SurfaceLevelShader.seed = Random.Range(-1000000f, 1000000f);
+            SurfaceLevelShader.seed = 12;//Random.Range(-1000000f, 1000000f);
             SurfaceLevelShader.isoLevel = -3.5f;
         }
 
@@ -50,26 +48,6 @@ namespace LowPolyTerrain.MeshGeneration
                 TerrainChunkLoadingManager.chunksWithPoints.Add(chunk);
             }
             return alterations;
-        }
-
-        public void CreateMesh()
-        {
-            mesh.Clear();
-            List<Vector3> meshVertices = new List<Vector3>();
-            List<int> meshTriangles = new List<int>();
-            for (int i = 0; i < triangles.Length; i++)
-            {
-                Triangle t = triangles[i];
-                meshVertices.Add(t.vertexC);
-                meshVertices.Add(t.vertexB);
-                meshVertices.Add(t.vertexA);
-                meshTriangles.Add(i * 3);
-                meshTriangles.Add(i * 3 + 1);
-                meshTriangles.Add(i * 3 + 2);
-            }
-            mesh.vertices = meshVertices.ToArray();
-            mesh.triangles = meshTriangles.ToArray();
-            mesh.RecalculateNormals();
         }
     }
 }

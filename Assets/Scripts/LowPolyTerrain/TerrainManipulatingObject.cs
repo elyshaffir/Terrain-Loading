@@ -75,6 +75,7 @@ namespace LowPolyTerrain
 
         void AlterTerrain(float alteringPower, HashSet<TerrainChunkIndex> indices, HashSet<TerrainChunkIndex> chunksDone)
         {
+            // have a dictionary of TerrainChunk's and TerrainChunkIndex at TerrainLoadingObject instead of looping
             foreach (TerrainChunkBehaviour terrainChunk in loadingGroupObject.GetComponentsInChildren<TerrainChunkBehaviour>())
             {
                 foreach (TerrainChunkIndex index in indices)
