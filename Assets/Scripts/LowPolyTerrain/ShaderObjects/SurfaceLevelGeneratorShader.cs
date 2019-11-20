@@ -6,7 +6,7 @@ using static ComputeShading.ComputeShaderProperty;
 
 namespace LowPolyTerrain.ShaderObjects
 {
-    class SurfaceLevelShader : ComputeShaderObject
+    class SurfaceLevelGeneratorShader : ComputeShaderObject
     {
         public static ComputeShader surfaceLevelGeneratorShader;
         public static float seed;
@@ -21,7 +21,7 @@ namespace LowPolyTerrain.ShaderObjects
 
         bool relevant;
 
-        public SurfaceLevelShader(TerrainChunkMeshGenerator generator) :
+        public SurfaceLevelGeneratorShader(TerrainChunkMeshGenerator generator) :
             base(surfaceLevelGeneratorShader,
                 surfaceLevelGeneratorShader.FindKernel("GenerateSurfaceLevel"))
         {
@@ -33,7 +33,6 @@ namespace LowPolyTerrain.ShaderObjects
             return new ComputeShaderProperty[] {
                 new ComputeShaderIntProperty("numPointsX", generator.constraint.scale.x * TerrainChunk.ChunkSizeInPoints.x),
                 new ComputeShaderIntProperty("numPointsY", generator.constraint.scale.y * TerrainChunk.ChunkSizeInPoints.y),
-                new ComputeShaderIntProperty("numPointsZ", generator.constraint.scale.z * TerrainChunk.ChunkSizeInPoints.z),
                 new ComputeShaderFloatProperty("noiseScale", .94f), // Scale this down and scale the world up to create an effect of more points
                 new ComputeShaderIntProperty("octaves", 6),
                 new ComputeShaderVector3Property("offset", generator.constraint.position),

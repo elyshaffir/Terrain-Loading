@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using LowPolyTerrain.Chunk;
 using LowPolyTerrain.MeshGeneration;
 using UnityEngine;
+using static LowPolyTerrain.Chunk.TerrainChunkIndex;
 
 namespace LowPolyTerrain
 {
@@ -16,12 +18,15 @@ namespace LowPolyTerrain
         public ComputeShader prepareRelevantCubesShader;
         public int renderDistance;
 
+        public Dictionary<TerrainChunkIndex, TerrainChunk> loadedChunksSorted;
+
         List<TerrainChunk> loadedChunks;
         TerrainChunkIndex currentTerrainChunkIndex;
 
         void Awake()
         {
             loadedChunks = new List<TerrainChunk>();
+            loadedChunksSorted = new Dictionary<TerrainChunkIndex, TerrainChunk>(new TerrainChunkIndexComparer());
         }
 
         void Start()
@@ -80,7 +85,7 @@ namespace LowPolyTerrain
                     TerrainChunk newChunk = new TerrainChunk(newIndex);
 
                     loadedChunks[i] = newChunk;
-                    TerrainChunkLoadingManager.chunksToLoad.Add(newChunk);
+                    LoadChunk(newChunk);
                 }
             }
         }
@@ -89,15 +94,23 @@ namespace LowPolyTerrain
         {
             foreach (TerrainChunkIndex indexToLoad in indicesToLoad)
             {
-                LoadChunk(indexToLoad);
+                TerrainChunk chunkToAdd = new TerrainChunk(indexToLoad);
+                loadedChunks.Add(chunkToAdd);
+                LoadChunk(chunkToAdd);
             }
         }
 
-        void LoadChunk(TerrainChunkIndex indexToLoad)
+        void LoadChunk(TerrainChunk chunkToLoad)
         {
-            TerrainChunk chunkToAdd = new TerrainChunk(indexToLoad);
-            TerrainChunkLoadingManager.chunksToLoad.Add(chunkToAdd);
-            loadedChunks.Add(chunkToAdd);
+            TerrainChunkLoadingManager.chunksToLoad.Add(chunkToLoad);
+            try
+            {
+                loadedChunksSorted.Add(chunkToLoad.index, chunkToLoad);
+            }
+            catch (ArgumentException)
+            {
+                loadedChunksSorted[chunkToLoad.index] = chunkToLoad;
+            }
         }
 
         void OnDestroy()

@@ -12,7 +12,6 @@ StructuredBuffer<float> alterations;
 
 uint numPointsX;
 uint numPointsY;
-uint numPointsZ;
 
 float noiseScale;
 int octaves;

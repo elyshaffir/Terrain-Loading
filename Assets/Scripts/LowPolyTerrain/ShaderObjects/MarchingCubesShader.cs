@@ -37,7 +37,7 @@ namespace LowPolyTerrain.ShaderObjects
             return new ComputeShaderProperty[] {
                 new ComputeShaderIntProperty("numPointsX", generator.constraint.scale.x * TerrainChunk.ChunkSizeInPoints.x),
                 new ComputeShaderIntProperty("numPointsY", generator.constraint.scale.y * TerrainChunk.ChunkSizeInPoints.y),
-                new ComputeShaderFloatProperty("isoLevel", SurfaceLevelShader.isoLevel)
+                new ComputeShaderFloatProperty("isoLevel", SurfaceLevelGeneratorShader.isoLevel)
             };
         }
 

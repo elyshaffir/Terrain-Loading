@@ -58,7 +58,7 @@ namespace LowPolyTerrain.ShaderObjects
                 new ComputeShaderVector3Property("chunkPosition", generator.constraint.position),
                 new ComputeShaderFloatProperty("sphereRadius", sphereRadius),
                 new ComputeShaderVector3Property("spherePosition", spherePosition),
-                new ComputeShaderFloatProperty("isoLevel", SurfaceLevelShader.isoLevel)
+                new ComputeShaderFloatProperty("isoLevel", SurfaceLevelGeneratorShader.isoLevel)
             };
         }
 

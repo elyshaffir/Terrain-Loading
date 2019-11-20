@@ -75,21 +75,19 @@ namespace LowPolyTerrain
 
         void AlterTerrain(float alteringPower, HashSet<TerrainChunkIndex> indices, HashSet<TerrainChunkIndex> chunksDone)
         {
-            foreach (TerrainChunkBehaviour terrainChunk in loadingGroupObject.GetComponentsInChildren<TerrainChunkBehaviour>())
+            foreach (TerrainChunkIndex index in indices)
             {
-                foreach (TerrainChunkIndex index in indices)
+                TerrainChunk chunkToAlter;
+                if (loadingGroupObject.GetComponent<TerrainLoadingObject>().loadedChunksSorted.TryGetValue(index, out chunkToAlter) && !chunksDone.Contains(index))
                 {
-                    if (terrainChunk.chunk.index.Equals(index) && !chunksDone.Contains(terrainChunk.chunk.index))
-                    {
-                        HashSet<TerrainChunkIndex> newIndices = new HashSet<TerrainChunkIndex>(new TerrainChunkIndexComparer());
-                        terrainChunk.Alter(
-                            sphereTool.transform.position,
-                            sphereTool.transform.localScale.x / 2,
-                            alteringPower,
-                            newIndices);
-                        chunksDone.Add(terrainChunk.chunk.index);
-                        AlterTerrain(alteringPower, newIndices, chunksDone);
-                    }
+                    HashSet<TerrainChunkIndex> newIndices = new HashSet<TerrainChunkIndex>(new TerrainChunkIndexComparer());
+                    chunkToAlter.Alter(
+                        sphereTool.transform.position,
+                        sphereTool.transform.localScale.x / 2,
+                        alteringPower,
+                        newIndices);
+                    chunksDone.Add(index);
+                    AlterTerrain(alteringPower, newIndices, chunksDone);
                 }
             }
         }
