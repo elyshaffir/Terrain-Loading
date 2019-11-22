@@ -19,19 +19,14 @@ namespace LowPolyTerrain.Chunk
             cachedChunks = new Dictionary<TerrainChunkIndex, ComputeBuffer>(new TerrainChunkIndexComparer());
         }
 
-        public static void PhaseOne(int renderDistance)
+        public static void PhaseOne(int chunksPerFrame)
         {
-            List<TerrainChunk> currentChunks = new List<TerrainChunk>();
-            int chunksPerFrame = CalculateChunksPerFrame(renderDistance);
             for (int i = 0, c = 0; i < chunksToLoad.Count && c < chunksPerFrame; i++, c++)
             {
                 TerrainChunk chunkToLoad = chunksToLoad[i];
                 chunkToLoad.PhaseOne();
-                currentChunks.Add(chunkToLoad);
                 chunksToLoad.RemoveAt(i);
-            }
-            foreach (TerrainChunk chunkToLoad in currentChunks)
-            {
+
                 if (chunkToLoad.PhaseTwo())
                 {
                     chunksWithPoints.Add(chunkToLoad);
@@ -41,11 +36,6 @@ namespace LowPolyTerrain.Chunk
             {
                 relevantChunk.PhaseThree();
             }
-        }
-
-        static int CalculateChunksPerFrame(int renderDistance)
-        {
-            return (int)Math.Ceiling(TerrainChunk.ChunkSizeInCubes.magnitude / renderDistance * TerrainChunkIndex.GetRenderDistanceY(renderDistance) * renderDistance);
         }
 
         public static void PhaseTwo()

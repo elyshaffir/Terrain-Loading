@@ -14,7 +14,7 @@ namespace LowPolyTerrain
         const float MIN_SCALE = .1f;
         const float MAX_SCALE = 7f;
         const int MAX_RANGE = 100;
-        const float ALTERING_POWER = 1f;
+        const float ALTERING_POWER = 10f;
 
         GameObject sphereTool;
 
@@ -78,7 +78,7 @@ namespace LowPolyTerrain
             foreach (TerrainChunkIndex index in indices)
             {
                 TerrainChunk chunkToAlter;
-                if (loadingGroupObject.GetComponent<TerrainLoadingObject>().loadedChunksSorted.TryGetValue(index, out chunkToAlter) && !chunksDone.Contains(index))
+                if (loadingGroupObject.GetComponent<TerrainLoadingObject>().loadedChunks.TryGetValue(index, out chunkToAlter) && !chunksDone.Contains(index))
                 {
                     HashSet<TerrainChunkIndex> newIndices = new HashSet<TerrainChunkIndex>(new TerrainChunkIndexComparer());
                     chunkToAlter.Alter(

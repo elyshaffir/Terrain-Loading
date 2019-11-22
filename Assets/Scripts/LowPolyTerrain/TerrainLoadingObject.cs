@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using LowPolyTerrain.Chunk;
 using LowPolyTerrain.MeshGeneration;
 using UnityEngine;
@@ -16,23 +17,24 @@ namespace LowPolyTerrain
         public ComputeShader marchingCubesGeneratorShader;
         public ComputeShader alterPointsShader;
         public ComputeShader prepareRelevantCubesShader;
+
         public int renderDistance;
+        public int renderDistanceY;
+        public int chunksPerFrame;
 
-        public Dictionary<TerrainChunkIndex, TerrainChunk> loadedChunksSorted;
+        public Dictionary<TerrainChunkIndex, TerrainChunk> loadedChunks;
 
-        List<TerrainChunk> loadedChunks;
         TerrainChunkIndex currentTerrainChunkIndex;
 
         void Awake()
         {
-            loadedChunks = new List<TerrainChunk>();
-            loadedChunksSorted = new Dictionary<TerrainChunkIndex, TerrainChunk>(new TerrainChunkIndexComparer());
+            loadedChunks = new Dictionary<TerrainChunkIndex, TerrainChunk>(new TerrainChunkIndexComparer());
         }
 
         void Start()
         {
             InitializeTerrain();
-            InitializeChunks();
+            TerrainChunkIndex.LoadInitialChunks(loadingObject.transform.position, renderDistance, renderDistanceY, this);
             currentTerrainChunkIndex = TerrainChunkIndex.FromVector(loadingObject.transform.position);
         }
 
@@ -44,17 +46,9 @@ namespace LowPolyTerrain
             TerrainChunkLoadingManager.Init();
         }
 
-        void InitializeChunks()
-        {
-            List<TerrainChunkIndex> indicesToUpdate = TerrainChunkIndex.GetChunksToUpdate(
-                        loadingObject.transform.position,
-                        renderDistance);
-            LoadChunks(indicesToUpdate);
-        }
-
         void Update()
         {
-            TerrainChunkLoadingManager.PhaseOne(renderDistance);
+            TerrainChunkLoadingManager.PhaseOne(chunksPerFrame);
             TerrainChunkIndex newTerrainChunkIndex = TerrainChunkIndex.FromVector(loadingObject.transform.position);
             TerrainChunkIndex distance = newTerrainChunkIndex - currentTerrainChunkIndex;
             if (!distance.Equals(TerrainChunkIndex.zero))
@@ -67,11 +61,11 @@ namespace LowPolyTerrain
 
         void ManageChunks(TerrainChunkIndex distance)
         {
-            int c = loadedChunks.Count;
-            for (int i = 0; i < c; i++)
+            TerrainChunkIndex[] loadedChunkIndices = loadedChunks.Keys.ToArray();
+            foreach (TerrainChunkIndex loadedChunkIndex in loadedChunkIndices)
             {
-                TerrainChunk loadedChunk = loadedChunks[i];
-                if (!loadedChunk.index.InRange(currentTerrainChunkIndex, renderDistance))
+                TerrainChunk loadedChunk = loadedChunks[loadedChunkIndex];
+                if (!loadedChunk.index.InRange(currentTerrainChunkIndex, renderDistance, renderDistanceY))
                 {
                     loadedChunk.Cache();
                     TerrainChunkLoadingManager.chunksToLoad.Remove(loadedChunk);
@@ -84,20 +78,16 @@ namespace LowPolyTerrain
                     TerrainChunkIndex newIndex = currentTerrainChunkIndex + gridPosInverted;
                     TerrainChunk newChunk = new TerrainChunk(newIndex);
 
-                    loadedChunks[i] = newChunk;
+                    loadedChunks.Remove(loadedChunkIndex);
                     LoadChunk(newChunk);
                 }
             }
         }
 
-        void LoadChunks(List<TerrainChunkIndex> indicesToLoad)
+        public void LoadChunk(TerrainChunkIndex indexToLoad)
         {
-            foreach (TerrainChunkIndex indexToLoad in indicesToLoad)
-            {
-                TerrainChunk chunkToAdd = new TerrainChunk(indexToLoad);
-                loadedChunks.Add(chunkToAdd);
-                LoadChunk(chunkToAdd);
-            }
+            TerrainChunk chunkToAdd = new TerrainChunk(indexToLoad);
+            LoadChunk(chunkToAdd);
         }
 
         void LoadChunk(TerrainChunk chunkToLoad)
@@ -105,11 +95,11 @@ namespace LowPolyTerrain
             TerrainChunkLoadingManager.chunksToLoad.Add(chunkToLoad);
             try
             {
-                loadedChunksSorted.Add(chunkToLoad.index, chunkToLoad);
+                loadedChunks.Add(chunkToLoad.index, chunkToLoad);
             }
             catch (ArgumentException)
             {
-                loadedChunksSorted[chunkToLoad.index] = chunkToLoad;
+                loadedChunks[chunkToLoad.index] = chunkToLoad;
             }
         }
 

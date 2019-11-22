@@ -36,7 +36,6 @@ namespace LowPolyTerrain.ShaderObjects
             {
                 this.alterationsBuffer = new ComputeBuffer(generator.constraint.GetVolume(), sizeof(float));
                 float[] alterations = new float[generator.constraint.GetVolume()];
-                Array.Clear(alterations, 0, alterations.Length);
                 this.alterationsBuffer.SetData(alterations);
             }
         }
@@ -64,11 +63,10 @@ namespace LowPolyTerrain.ShaderObjects
 
         public override void SetBuffers()
         {
-            relevantCubeCornersBuffer = new ComputeBuffer(generator.constraint.GetVolume(), sizeof(uint)); // if the initial value is not set to 0 it might pose a problem            
+            relevantCubeCornersBuffer = new ComputeBuffer(generator.constraint.GetVolume(), sizeof(uint));
 
             onEdgesBuffer = new ComputeBuffer(6, sizeof(int));
-            int[] onEdgesFill = new int[6]; // This seems to be necessary for some reason
-            Array.Clear(onEdgesFill, 0, onEdgesFill.Length);
+            int[] onEdgesFill = new int[6];
             onEdgesBuffer.SetData(onEdgesFill);
 
             SetBuffer("points", generator.surfaceLevelShader.pointsBuffer, false);
@@ -82,8 +80,7 @@ namespace LowPolyTerrain.ShaderObjects
             Dispatch(
                 generator.constraint.scale.x * TerrainChunk.ChunkSizeInPoints.x / 5,
                 generator.constraint.scale.y * TerrainChunk.ChunkSizeInPoints.y / 5,
-                generator.constraint.scale.z * TerrainChunk.ChunkSizeInPoints.z / 5,
-                GetProperties());
+                generator.constraint.scale.z * TerrainChunk.ChunkSizeInPoints.z / 5);
         }
 
         public override void GetData()

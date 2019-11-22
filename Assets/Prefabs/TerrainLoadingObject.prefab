@@ -53,4 +53,6 @@ MonoBehaviour:
   alterPointsShader: {fileID: 7200000, guid: 9239e2c317e8d1849b1b1819f6f5fdcd, type: 3}
   prepareRelevantCubesShader: {fileID: 7200000, guid: 812e2afd830621e44a6ab443e95dd882,
     type: 3}
-  renderDistance: 2
+  renderDistance: 5
+  renderDistanceY: 1
+  chunksPerFrame: 4

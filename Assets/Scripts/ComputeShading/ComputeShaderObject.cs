@@ -35,8 +35,9 @@ namespace ComputeShading
 
         public abstract void Dispatch();
 
-        protected void Dispatch(int threadGroupsX, int threadGroupsY, int threadGroupsZ, ComputeShaderProperty[] properties)
+        protected void Dispatch(int threadGroupsX, int threadGroupsY, int threadGroupsZ)
         {
+            ComputeShaderProperty[] properties = GetProperties();
             foreach (ComputeShaderProperty property in properties)
             {
                 property.SetProperty(shader);

@@ -64,8 +64,8 @@ void GenerateSurfaceLevel(uint3 id : SV_DispatchThreadID)
 	Point p;
 	p.position = id;
 	p.surfaceLevel = generatedNoise - pos.y + alterations[index];
-		
-	if (abs(p.surfaceLevel - isoLevel) < 20)
+	
+	if (p.surfaceLevel < isoLevel)	
 	{
 		AddRelevantCubes(id, numPointsX, numPointsY, relevantCubeCorners);
 	}	

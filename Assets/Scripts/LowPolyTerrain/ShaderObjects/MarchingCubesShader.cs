@@ -59,8 +59,7 @@ namespace LowPolyTerrain.ShaderObjects
             Dispatch(
                 Mathf.CeilToInt((cubesToMarchCount) / 5f),
                 1,
-                1,
-                GetProperties());
+                1);
         }
 
         public override void GetData()

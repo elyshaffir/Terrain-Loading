@@ -48,8 +48,7 @@ namespace LowPolyTerrain.ShaderObjects
             Dispatch(
                 generator.constraint.scale.x * TerrainChunk.ChunkSizeInCubes.x / 7,
                 generator.constraint.scale.y * TerrainChunk.ChunkSizeInCubes.y / 7,
-                generator.constraint.scale.z * TerrainChunk.ChunkSizeInCubes.z / 7,
-                GetProperties());
+                generator.constraint.scale.z * TerrainChunk.ChunkSizeInCubes.z / 7);
         }
 
         public override void GetData()

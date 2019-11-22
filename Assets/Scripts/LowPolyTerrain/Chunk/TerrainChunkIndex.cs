@@ -20,27 +20,19 @@ namespace LowPolyTerrain.Chunk
             this.z = z;
         }
 
-        public static List<TerrainChunkIndex> GetChunksToUpdate(Vector3 loadingChunkPosition, int renderDistance)
+        public static void LoadInitialChunks(Vector3 loadingChunkPosition, int renderDistance, int renderDistanceY, TerrainLoadingObject loadingObject)
         {
-            int renderDistanceY = GetRenderDistanceY(renderDistance);
             TerrainChunkIndex loadingObjectIndex = FromVector(loadingChunkPosition);
-            List<TerrainChunkIndex> chunksToUpdate = new List<TerrainChunkIndex>();
-            for (int x = loadingObjectIndex.x + renderDistance - 1; x > loadingObjectIndex.x - renderDistance - 1; x--)
+            for (int y = loadingObjectIndex.y + renderDistanceY - 1; y > loadingObjectIndex.y - renderDistanceY - 1; y--)
             {
-                for (int y = loadingObjectIndex.y + renderDistanceY - 1; y > loadingObjectIndex.y - renderDistanceY - 1; y--)
+                for (int z = loadingObjectIndex.z + renderDistance - 1; z > loadingObjectIndex.z - renderDistance - 1; z--)
                 {
-                    for (int z = loadingObjectIndex.z + renderDistance - 1; z > loadingObjectIndex.z - renderDistance - 1; z--)
+                    for (int x = loadingObjectIndex.x + renderDistance - 1; x > loadingObjectIndex.x - renderDistance - 1; x--)
                     {
-                        chunksToUpdate.Add(new TerrainChunkIndex(x, y, z));
+                        loadingObject.LoadChunk(new TerrainChunkIndex(x, y, z));
                     }
                 }
             }
-            return chunksToUpdate;
-        }
-
-        public static int GetRenderDistanceY(int renderDistance)
-        {
-            return renderDistance / 2;
         }
 
         public void GetEdgeChunks(int[] onEdges, HashSet<TerrainChunkIndex> additionalIndices)
@@ -48,17 +40,17 @@ namespace LowPolyTerrain.Chunk
             for (int xFlag = 0; xFlag <= 5; xFlag += 5)
             {
                 int xModifier = (xFlag == 0) ? -1 : ((xFlag == 5) ? 1 : 0);
-                if (xModifier != 0 && onEdges[xFlag] == 1)
+                if (onEdges[xFlag] == 1)
                 {
                     additionalIndices.Add(new TerrainChunkIndex(x + xModifier, y, z));
                 }
                 for (int yFlag = 1; yFlag <= 4; yFlag += 3)
                 {
                     int yModifier = (yFlag == 1) ? -1 : ((yFlag == 4) ? 1 : 0);
-                    if (yModifier != 0 && onEdges[yFlag] == 1)
+                    if (onEdges[yFlag] == 1)
                     {
                         additionalIndices.Add(new TerrainChunkIndex(x, y + yModifier, z));
-                        if (xModifier != 0 && onEdges[xFlag] == 1)
+                        if (onEdges[xFlag] == 1)
                         {
                             additionalIndices.Add(new TerrainChunkIndex(x + xModifier, y + yModifier, z));
                         }
@@ -66,18 +58,18 @@ namespace LowPolyTerrain.Chunk
                     for (int zFlag = 2; zFlag <= 3; zFlag++)
                     {
                         int zModifier = (zFlag == 2) ? -1 : ((zFlag == 3) ? 1 : 0);
-                        if (zModifier != 0 && onEdges[zFlag] == 1)
+                        if (onEdges[zFlag] == 1)
                         {
                             additionalIndices.Add(new TerrainChunkIndex(x, y, z + zModifier));
-                            if (yModifier != 0 && onEdges[yFlag] == 1)
+                            if (onEdges[yFlag] == 1)
                             {
                                 additionalIndices.Add(new TerrainChunkIndex(x, y + yModifier, z + zModifier));
-                                if (xModifier != 0 && onEdges[xFlag] == 1)
+                                if (onEdges[xFlag] == 1)
                                 {
                                     additionalIndices.Add(new TerrainChunkIndex(x + xModifier, y + yModifier, z + zModifier));
                                 }
                             }
-                            if (xModifier != 0 && onEdges[xFlag] == 1)
+                            if (onEdges[xFlag] == 1)
                             {
                                 additionalIndices.Add(new TerrainChunkIndex(x + xModifier, y, z + zModifier));
                             }
@@ -105,9 +97,8 @@ namespace LowPolyTerrain.Chunk
             );
         }
 
-        public bool InRange(TerrainChunkIndex loadingObjectIndex, int renderDistance)
+        public bool InRange(TerrainChunkIndex loadingObjectIndex, int renderDistance, int renderDistanceY)
         {
-            int renderDistanceY = GetRenderDistanceY(renderDistance);
             return x <= loadingObjectIndex.x + renderDistance - 1 &&
                 x > loadingObjectIndex.x - renderDistance - 1 &&
                 y <= loadingObjectIndex.y + renderDistanceY - 1 &&
